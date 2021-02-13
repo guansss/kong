@@ -1,0 +1,8 @@
+{
+  "name": "kong",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:guansss/kong.git",
+  "author": "Guan <821143943@qq.com>",
+  "license": "MIT"
+}
