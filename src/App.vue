@@ -1,6 +1,23 @@
 <template>
-  <v-app>
-    <v-navigation-drawer v-model="drawer">
+  <v-app dark>
+    <v-app-bar
+      app
+      color="primary"
+    >
+      <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
+      <v-toolbar-title>Kong</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn
+        icon
+        href="#"
+      >
+        <v-icon>mdi-download</v-icon>
+      </v-btn>
+    </v-app-bar>
+    <v-navigation-drawer
+      app
+      v-model="drawer"
+    >
       <v-toolbar color="primary">
         <v-toolbar-title>Kong</v-toolbar-title>
       </v-toolbar>
@@ -10,21 +27,11 @@
         fluid
         class="pa-0 fill-height flex-column"
       >
+        <v-fade-transition mode="out-in">
+          <router-view></router-view>
+        </v-fade-transition>
       </v-container>
     </v-main>
-
-    <v-fab-transition>
-      <v-btn
-        fab
-        top
-        left
-        absolute
-        dark
-        color="accent"
-      >
-        <v-icon>mdi-plus</v-icon>
-      </v-btn>
-    </v-fab-transition>
 
     <v-snackbar
       v-model="snackbar.visible"
@@ -51,12 +58,7 @@ export default Vue.extend({
   name: "App",
   components: {},
   data: () => ({
-    drawer: true,
-
-    creation: {
-      dialog: false,
-      result: null,
-    },
+    drawer: false,
 
     snackbar: {
       visible: false,
