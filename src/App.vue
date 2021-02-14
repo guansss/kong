@@ -5,7 +5,7 @@
       color="primary"
     >
       <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
-      <v-toolbar-title>Kong</v-toolbar-title>
+      <v-toolbar-title>{{$route.meta.title}}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn
         icon
@@ -83,7 +83,8 @@ export default Vue.extend({
       console.log(...args);
     },
   },
-  created() {},
+  created() {
+  },
 });
 </script>
 
