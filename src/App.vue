@@ -101,6 +101,18 @@ export default Vue.extend({
   overflow-y: scroll !important;
 }
 
+.w100 {
+  width: 100%;
+}
+
+a.link {
+  transition: color 0.15s ease-out;
+
+  &:hover {
+    color: var(--v-info-lighten2);
+  }
+}
+
 // https://github.com/vuetifyjs/vuetify/issues/7283#issuecomment-572276385
 // Reversed input variant
 .v-input--reverse .v-input__slot {

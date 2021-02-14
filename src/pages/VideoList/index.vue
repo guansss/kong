@@ -1,12 +1,31 @@
 <template>
-  <div>
-    <v-row>
+  <div class="pb-4 w100">
+    <v-row class="px-md-5 py-5">
       <v-col
         v-for="video in videos"
         :key="video.id"
-        cols="4"
+        class="pa-2"
+        cols="6"
+        md="4"
       >
-        <v-card>{{video.title+' '+new Date(video.created).toLocaleString()}}</v-card>
+        <v-card
+          :href="'#'+video.id"
+          class="item"
+        >
+          <v-img
+            :src="video.thumb&&staticServer+'/test.jpg'"
+            :aspect-ratio="16/9"
+          >
+          </v-img>
+          <v-card-title>{{video.title}}</v-card-title>
+          <v-card-subtitle class="d-flex flex-wrap">
+            <a
+              class="author link mr-auto text-decoration-none"
+              href="#author"
+            >{{video.author_id}}</a>
+            <span>{{video.created|date}}</span>
+          </v-card-subtitle>
+        </v-card>
       </v-col>
     </v-row>
     <v-pagination
@@ -27,12 +46,17 @@ const PAGE_SIZE = 24;
 export default Vue.extend({
   name: "VideoList",
   components: {},
+  filters: {
+    date: (time: number) => new Date(time).toLocaleString(),
+  },
   data: () => ({
     videos: [] as VideoModel[],
 
     total: 0,
     page: 1,
     pages: 0,
+
+    staticServer: process.env.VUE_APP_STATIC_SERVER,
   }),
   watch: {
     page(value: number) {
@@ -58,4 +82,19 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
+.item {
+  transition: background-color 0.15s ease-out;
+
+  &.theme--dark:hover {
+    background-color: #555;
+  }
+}
+
+.author {
+  color: inherit;
+
+  &:hover{
+    color: var(--v-info-lighten1)
+  }
+}
 </style>
