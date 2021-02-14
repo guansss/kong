@@ -83,8 +83,7 @@ export default Vue.extend({
       console.log(...args);
     },
   },
-  created() {
-  },
+  created() {},
 });
 </script>
 
@@ -98,8 +97,8 @@ export default Vue.extend({
   box-sizing: border-box;
 }
 
-html {
-  overflow: hidden !important;
+.overflow-y-hidden.dont-hide-the-fucking-scrollbar {
+  overflow-y: scroll !important;
 }
 
 // https://github.com/vuetifyjs/vuetify/issues/7283#issuecomment-572276385
