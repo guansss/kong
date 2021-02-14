@@ -7,11 +7,11 @@ export interface VideoModel {
     title: string;
     author_id: string;
 
-    url?: string;
-    thumb_url?: string;
-
     file: string;
-    thumb_file: string;
+    thumb: string;
+
+    video_dl_url?: string;
+    thumb_dl_url?: string;
 
     // ID of the download tasks
     video_dl_id?: string;
