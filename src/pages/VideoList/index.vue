@@ -9,8 +9,8 @@
         md="4"
       >
         <v-card
-          :href="'#'+video.id"
           class="item"
+          :href="video.videoLoaded?'#'+video.id:undefined"
         >
           <v-img
             :src="video.thumbLoaded?video.thumb:undefined"
@@ -18,11 +18,14 @@
           >
             <div
               v-if="!video.videoLoaded"
-              class="fill-height d-flex flex-column align-center justify-center"
+              class="fill-height d-flex flex-column text-center justify-center"
             >
               <template v-if="video.videoTask">
                 <div class="mb-1 display-1">{{~~(video.videoTask.loaded/video.videoTask.size*100)}}%</div>
-                <div class="subtitle-1">{{video.videoTask.loaded|size}} / {{video.videoTask.size|size}}</div>
+                <div class="subtitle-1">
+                  {{video.videoTask.loaded|size}} / {{video.videoTask.size|size}}<br>
+                  ({{video.speed|size}} / s)
+                </div>
               </template>
               <div
                 v-if="video.error"
@@ -165,6 +168,11 @@ export default Vue.extend({
   &.theme--dark:hover {
     background-color: #555;
   }
+}
+
+// don't show a text selector on items rendered as <div> instead of <a>
+div.item {
+  cursor: default;
 }
 
 .author {

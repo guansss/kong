@@ -1,5 +1,7 @@
 import { VideoModel, DownloadTask } from '@/net/models';
 
+const SPEED_FILTER_STRENGTH = 5;
+
 export interface VideoEntry extends VideoModel { }
 
 export class VideoEntry {
@@ -9,6 +11,12 @@ export class VideoEntry {
 
     videoLoaded: boolean;
     thumbLoaded: boolean;
+
+    // bytes per second
+    speed = 0;
+
+    // last time the speed is updated
+    speedUpdateTime: DOMTimeStamp = 0;
 
     error?: string;
 
@@ -39,6 +47,8 @@ export class VideoEntry {
         }
 
         if (videoTask && this.videoTask) {
+            this.updateProgress(videoTask.loaded, this.videoTask.loaded);
+
             // use property assigning so Vue won't have to recreate
             // the reactive setters/getters for the new task object.
             // this should improve the performance
@@ -74,5 +84,21 @@ export class VideoEntry {
         }
 
         return false;
+    }
+
+    updateProgress(loaded: number, lastLoaded: number) {
+        if (this.videoTask) {
+            const now = Date.now();
+
+            if (!this.speedUpdateTime) {
+                this.speedUpdateTime = now;
+                return;
+            }
+
+            const instantaneousSpeed = (loaded - lastLoaded) / (now - this.speedUpdateTime) * 1000;
+
+            this.speed += (instantaneousSpeed - this.speed) / SPEED_FILTER_STRENGTH;
+            this.speedUpdateTime = now;
+        }
     }
 }
