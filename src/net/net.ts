@@ -1,12 +1,13 @@
 import { pickBy } from 'lodash';
 
-const API_SERVER = process.env.VUE_APP_API_SERVER;
-const STATIC_SERVER = process.env.VUE_APP_STATIC_SERVER;
+export const API_SERVER = process.env.VUE_APP_API_SERVER;
+export const STATIC_SERVER = process.env.VUE_APP_STATIC_SERVER;
 
-type JSONPrimitive = string | number | boolean | undefined;
+export type APIPrimitive = string | number | boolean | undefined;
 
 export interface API {
-    params: Record<string, JSONPrimitive>;
+    url: string;
+    params: Record<string, APIPrimitive>;
     result: any;
 }
 
@@ -14,22 +15,27 @@ export function file(url: string): string {
     return new URL(url, STATIC_SERVER).toString();
 }
 
-export async function api<T = any>(
-    url: string,
-    params?: T extends API ? T['params'] : Record<string, JSONPrimitive>,
-    type: 'json' | 'text' = 'json'
-): Promise<T extends API ? T['result'] : T> {
-    let qualifiedParams: Record<string, JSONPrimitive> | undefined;
-
+export function getSearchString(params?: Record<string, APIPrimitive>): string {
     if (params) {
-        qualifiedParams = pickBy(params, value => value !== undefined);
+        const qualifiedParams = pickBy(params, value => value !== undefined);
+
+        // despite the type incompatibility, URLSearchParams can actually
+        // receive `Record<string, Primitive>` as argument
+        const search = new URLSearchParams(qualifiedParams as Record<string, string>).toString();
+
+        return '?' + search;
     }
 
-    // despite the type incompatibility, URLSearchParams can actually
-    // receive `Record<string, JSONPrimitive>` as argument
-    const search = new URLSearchParams(qualifiedParams as Record<string, string>).toString();
+    return '';
+}
 
-    const fullURL = new URL(url, API_SERVER).toString() + (search ? '?' + search : '');
+export async function api<T = any>(
+    url: T extends API ? T['url'] : string,
+    params?: T extends API ? T['params'] : Record<string, APIPrimitive>,
+    type: 'json' | 'text' = 'json'
+): Promise<T extends API ? T['result'] : T> {
+
+    const fullURL = new URL(url, API_SERVER).toString() + getSearchString(params);
 
     const res = await fetch(fullURL);
 

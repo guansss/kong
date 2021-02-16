@@ -1,3 +1,5 @@
+import VueRouter, { Route } from 'vue-router';
+
 declare module '*.vue' {
     import Vue from 'vue';
     export default Vue;
@@ -5,5 +7,7 @@ declare module '*.vue' {
 
 declare module 'vue/types/vue' {
     export interface Vue {
+        $router: VueRouter;
+        $route: Route;
     }
 }

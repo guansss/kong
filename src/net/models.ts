@@ -1,4 +1,5 @@
 import { API } from './net';
+import { WSAPI } from './websocket';
 
 export interface VideoModel {
     id: string;
@@ -22,12 +23,36 @@ export interface VideoModel {
 }
 
 export interface VideosAPI extends API {
+    url: 'videos/',
     params: {
         offset?: number;
         limit?: number;
+        order?: string;
     };
     result: {
         list: VideoModel[];
         total: number;
+    };
+}
+
+export interface DownloadTask {
+    id: string;
+    loaded: number;
+    size: number;
+    error?: string;
+}
+
+export interface DownloadWSAPI extends WSAPI {
+    url: 'download/',
+    params: {
+        interval: number;
+    },
+    send: '';
+    receive: {
+        type: 'tasks',
+        data: DownloadTask[];
+    } | {
+        type: 'added' | 'loaded',
+        data: string; // the task's ID
     };
 }

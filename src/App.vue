@@ -9,9 +9,9 @@
       <v-spacer></v-spacer>
       <v-btn
         icon
-        href="#"
+        @click="reload"
       >
-        <v-icon>mdi-download</v-icon>
+        <v-icon>mdi-reload</v-icon>
       </v-btn>
     </v-app-bar>
     <v-navigation-drawer
@@ -67,6 +67,11 @@ export default Vue.extend({
     },
   }),
   methods: {
+    async reload() {
+      this.$router.push("nonexisting");
+      await this.$nextTick();
+      this.$router.go(-1);
+    },
     snack(message: string, timeout: number = 5000) {
       this.snackbar.message = message;
       this.snackbar.timeout = timeout;

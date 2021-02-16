@@ -1,6 +1,6 @@
 <template>
   <div class="pb-4 w100">
-    <v-row class="px-md-5 py-5">
+    <v-row class="px-1 px-md-5 py-5">
       <v-col
         v-for="video in videos"
         :key="video.id"
@@ -13,9 +13,22 @@
           class="item"
         >
           <v-img
-            :src="video.thumb&&staticServer+'/test.jpg'"
+            :src="video.thumbLoaded?video.thumb:undefined"
             :aspect-ratio="16/9"
           >
+            <div
+              v-if="!video.videoLoaded"
+              class="fill-height d-flex flex-column align-center justify-center"
+            >
+              <template v-if="video.videoTask">
+                <div class="mb-1 display-1">{{~~(video.videoTask.loaded/video.videoTask.size*100)}}%</div>
+                <div class="subtitle-1">{{video.videoTask.loaded|size}} / {{video.videoTask.size|size}}</div>
+              </template>
+              <div
+                v-if="video.error"
+                class="subtitle-1"
+              >{{video.error}}</div>
+            </div>
           </v-img>
           <v-card-title>{{video.title}}</v-card-title>
           <v-card-subtitle class="d-flex flex-wrap">
@@ -39,24 +52,31 @@
 <script lang="ts">
 import Vue from "vue";
 import { api } from "@/net/net";
-import { VideoModel, VideosAPI } from "@/net/models";
+import {
+  DownloadTask,
+  DownloadWSAPI,
+  VideoModel,
+  VideosAPI,
+} from "@/net/models";
+import { APIWebSocket } from "@/net/websocket";
+import { VideoEntry } from "./VideoEntry";
 
 const PAGE_SIZE = 24;
 
 export default Vue.extend({
   name: "VideoList",
   components: {},
-  filters: {
-    date: (time: number) => new Date(time).toLocaleString(),
-  },
   data: () => ({
-    videos: [] as VideoModel[],
+    videos: [] as VideoEntry[],
+
+    refreshing: false,
 
     total: 0,
     page: 1,
     pages: 0,
 
-    staticServer: process.env.VUE_APP_STATIC_SERVER,
+    downloadWS: undefined as APIWebSocket<DownloadWSAPI> | undefined,
+    downloadTasks: [] as DownloadTask[],
   }),
   watch: {
     page(value: number) {
@@ -64,19 +84,76 @@ export default Vue.extend({
     },
   },
   methods: {
+    reload() {
+      this.total = 0;
+    },
     async refresh() {
+      if (this.refreshing) {
+        return;
+      }
+
+      this.refreshing = true;
+
       const result = await api<VideosAPI>("videos/", {
         offset: (this.page - 1) * PAGE_SIZE,
         limit: PAGE_SIZE,
+        order: "created",
       });
 
-      this.videos = result.list;
       this.total = result.total;
       this.pages = Math.ceil(this.total / PAGE_SIZE);
+
+      this.videos = result.list.map((video) => new VideoEntry(video));
+
+      this.refreshing = false;
+
+      // scroll to top
+      window.scroll(0, 0);
+    },
+    async trackTasks() {
+      try {
+        const ws = await APIWebSocket.create<DownloadWSAPI>("download/", {
+          interval: 500,
+        });
+
+        this.downloadWS = ws;
+
+        for await (const message of ws.messages()) {
+          switch (message.type) {
+            case "added":
+              this.refresh();
+              break;
+
+            case "loaded":
+              this.finishTask(message.data);
+              break;
+
+            case "tasks":
+              this.videos.forEach((video) => video.updateTask(message.data));
+          }
+        }
+      } catch (e) {
+        // warn if the error is not caused by manually closing the WebSocket
+        if (this.downloadWS?.alive) {
+          console.warn(e);
+        }
+      }
+    },
+    finishTask(id: string) {
+      const matched = this.videos.some((video) => video.finishTask(id));
+
+      // a rare case that the task doesn't belong to any of the current videos
+      if (!matched) {
+        this.refresh();
+      }
     },
   },
   created() {
     this.refresh();
+    this.trackTasks();
+  },
+  beforeDestroy() {
+    this.downloadWS?.close();
   },
 });
 </script>
@@ -93,8 +170,8 @@ export default Vue.extend({
 .author {
   color: inherit;
 
-  &:hover{
-    color: var(--v-info-lighten1)
+  &:hover {
+    color: var(--v-info-lighten1);
   }
 }
 </style>
