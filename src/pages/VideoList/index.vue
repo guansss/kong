@@ -177,7 +177,7 @@ export default Vue.extend({
           ID: video.videoTask!.id,
         });
       } catch (e) {
-        video.error = e + "";
+        console.warn(e + "");
       }
     },
   },

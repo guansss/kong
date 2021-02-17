@@ -66,7 +66,7 @@ export async function api<T = any>(
         try {
             const apiError = await res.json();
 
-            message = apiError.details || '';
+            message = apiError.detail || '';
         } catch (e) {
             console.warn('Could not parse API error.', e);
         }
@@ -81,6 +81,6 @@ class NetworkError extends Error {
     }
 
     toString() {
-        return `${super.toString()} (url=${this.url}, status=${this.status})`;
+        return `NetworkError: ${this.message} (url=${this.url}, status=${this.status})`;
     }
 }
