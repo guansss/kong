@@ -11,6 +11,7 @@
         <v-card
           class="item"
           :href="video.videoLoaded?'#'+video.id:undefined"
+          target="_blank"
         >
           <v-img
             :src="video.thumbLoaded?video.thumb:undefined"
@@ -33,6 +34,26 @@
               >{{video.error}}</div>
             </div>
           </v-img>
+          <v-btn
+            icon
+            absolute
+            v-if="video.error&&video.videoTask"
+            class=" ma-2"
+            style="top:0"
+            @click="retry(video)"
+          >
+            <v-icon>mdi-reload</v-icon>
+          </v-btn>
+          <v-btn
+            icon
+            absolute
+            href="#"
+            target="_blank"
+            class="ma-2"
+            style="top:0;right:0"
+          >
+            <v-icon>mdi-open-in-new</v-icon>
+          </v-btn>
           <v-card-title>{{video.title}}</v-card-title>
           <v-card-subtitle class="d-flex flex-wrap">
             <a
@@ -58,7 +79,7 @@ import { api } from "@/net/net";
 import {
   DownloadTask,
   DownloadWSAPI,
-  VideoModel,
+  DownloadRetryAPI,
   VideosAPI,
 } from "@/net/models";
 import { APIWebSocket } from "@/net/websocket";
@@ -148,6 +169,15 @@ export default Vue.extend({
       // a rare case that the task doesn't belong to any of the current videos
       if (!matched) {
         this.refresh();
+      }
+    },
+    async retry(video: VideoEntry) {
+      try {
+        await api<DownloadRetryAPI>("download/retry/", {
+          ID: video.videoTask!.id,
+        });
+      } catch (e) {
+        video.error = e + "";
       }
     },
   },

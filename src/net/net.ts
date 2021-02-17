@@ -15,15 +15,30 @@ export function file(url: string): string {
     return new URL(url, STATIC_SERVER).toString();
 }
 
+/**
+ * Converts params object to a search string. An "ID" parameter will be
+ * specially prepended to the search string.
+ * 
+ * ```js
+ * getSearchString({
+ *     ID: 1,
+ *     id: 2,
+ *     foo: 'bar'
+ * })
+ * // returns "1?id=2&foo=bar"
+ * ```
+ */
 export function getSearchString(params?: Record<string, APIPrimitive>): string {
     if (params) {
-        const qualifiedParams = pickBy(params, value => value !== undefined);
+        const qualifiedParams = pickBy(params,
+            (value, key) => value !== undefined && key !== 'ID'
+        );
 
         // despite the type incompatibility, URLSearchParams can actually
         // receive `Record<string, Primitive>` as argument
         const search = new URLSearchParams(qualifiedParams as Record<string, string>).toString();
 
-        return '?' + search;
+        return (params.ID || '') + (search ? '?' + search : '');
     }
 
     return '';
@@ -31,7 +46,7 @@ export function getSearchString(params?: Record<string, APIPrimitive>): string {
 
 export async function api<T = any>(
     url: T extends API ? T['url'] : string,
-    params?: T extends API ? T['params'] : Record<string, APIPrimitive>,
+    params: T extends API ? T['params'] : (Record<string, APIPrimitive> | undefined),
     type: 'json' | 'text' = 'json'
 ): Promise<T extends API ? T['result'] : T> {
 
@@ -46,7 +61,17 @@ export async function api<T = any>(
 
         return res.json();
     } else {
-        throw new NetworkError('', fullURL, res.status);
+        let message = '';
+
+        try {
+            const apiError = await res.json();
+
+            message = apiError.details || '';
+        } catch (e) {
+            console.warn('Could not parse API error.', e);
+        }
+
+        throw new NetworkError(message, fullURL, res.status);
     }
 }
 

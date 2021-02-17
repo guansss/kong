@@ -56,3 +56,11 @@ export interface DownloadWSAPI extends WSAPI {
         data: string; // the task's ID
     };
 }
+
+export interface DownloadRetryAPI extends API {
+    url: 'download/retry/',
+    params: {
+        ID: string;
+    };
+    result: undefined;
+}

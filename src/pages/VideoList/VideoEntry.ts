@@ -42,22 +42,24 @@ export class VideoEntry {
         }
 
         // only care about the video task's error
-        if (videoTask?.error) {
+        if (videoTask) {
+            if (!videoTask.error) {
+                this.updateProgress(videoTask.loaded, this.videoTask?.loaded || 0);
+            }
+
             this.error = videoTask.error;
         }
 
-        if (videoTask && this.videoTask) {
-            this.updateProgress(videoTask.loaded, this.videoTask.loaded);
+        if (!videoTask && !this.videoTask && !this.videoLoaded) {
+            this.error = "Not downloaded";
+        }
 
+        if (videoTask && this.videoTask) {
             // use property assigning so Vue won't have to recreate
             // the reactive setters/getters for the new task object.
             // this should improve the performance
             Object.assign(this.videoTask, videoTask);
         } else {
-            if (!videoTask && !this.videoTask && !this.videoLoaded) {
-                this.error = "Not downloaded";
-            }
-
             this.videoTask = videoTask;
         }
 
