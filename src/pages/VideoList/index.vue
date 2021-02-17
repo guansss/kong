@@ -10,7 +10,7 @@
       >
         <v-card
           class="item"
-          :href="video.videoLoaded?'#'+video.id:undefined"
+          :to="video.videoLoaded?'/videos/'+video.id:undefined"
           target="_blank"
         >
           <v-img
@@ -47,7 +47,7 @@
           <v-btn
             icon
             absolute
-            href="#"
+            :href="video.src_url"
             target="_blank"
             class="ma-2"
             style="top:0;right:0"

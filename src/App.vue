@@ -68,7 +68,7 @@ export default Vue.extend({
   }),
   methods: {
     async reload() {
-      this.$router.push("nonexisting");
+      this.$router.push("/nonexisting");
       await this.$nextTick();
       this.$router.go(-1);
     },

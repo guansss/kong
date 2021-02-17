@@ -4,10 +4,11 @@ import { WSAPI } from './websocket';
 export interface VideoModel {
     id: string;
     type: 'i';
-    src_id: string;
+    src_url: string;
     title: string;
     author_id: string;
 
+    url: string;
     file: string;
     thumb: string;
 
@@ -35,6 +36,14 @@ export interface VideosAPI extends API {
     };
 }
 
+export interface VideoAPI extends API {
+    url: 'videos/',
+    params: {
+        ID: string;
+    };
+    result: VideoModel;
+}
+
 export interface DownloadTask {
     id: string;
     loaded: number;
@@ -45,7 +54,7 @@ export interface DownloadTask {
 export interface DownloadWSAPI extends WSAPI {
     url: 'download/',
     params: {
-        interval: number;
+        interval?: number;
     },
     send: '';
     receive: {

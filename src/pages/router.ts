@@ -8,6 +8,11 @@ export const router = new VueRouter({
             meta: {
                 title: 'Kong'
             }
+        },
+        {
+            path: '/videos/:id',
+            component: () => import('./Video/index.vue'),
+            props: true
         }
     ]
 });
