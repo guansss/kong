@@ -4,14 +4,19 @@ export const router = new VueRouter({
     routes: [
         {
             path: '/',
-            component: () => import('./VideoList/index.vue'),
+            components: {
+                default: () => import('./VideoList/index.vue'),
+                bar: () => import('./VideoList/Bar.vue'),
+            },
             meta: {
                 title: 'Kong'
             }
         },
         {
             path: '/videos/:id',
-            component: () => import('./Video/index.vue'),
+            components: {
+                default: () => import('./Video/index.vue'),
+            },
             props: true
         }
     ]

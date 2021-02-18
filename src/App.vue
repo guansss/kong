@@ -1,19 +1,9 @@
 <template>
   <v-app dark>
-    <v-app-bar
-      app
-      color="primary"
-    >
-      <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
-      <v-toolbar-title>{{$route.meta.title}}</v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn
-        icon
-        @click="reload"
-      >
-        <v-icon>mdi-reload</v-icon>
-      </v-btn>
-    </v-app-bar>
+    <v-fade-transition mode="out-in">
+      <router-view name="bar"></router-view>
+    </v-fade-transition>
+
     <v-navigation-drawer
       app
       v-model="drawer"
@@ -22,6 +12,7 @@
         <v-toolbar-title>Kong</v-toolbar-title>
       </v-toolbar>
     </v-navigation-drawer>
+
     <v-main>
       <v-container
         fluid
@@ -88,7 +79,10 @@ export default Vue.extend({
       console.log(...args);
     },
   },
-  created() {},
+  created() {
+    this.$root.$on("drawer", () => (this.drawer = true));
+    this.$root.$on("reload", this.reload);
+  },
 });
 </script>
 
