@@ -6,19 +6,29 @@
       controls
     >
     </video>
+
+    <VideoInfo
+      v-if="video"
+      :video="video"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import { api } from "@/net/net";
-import { VideoModel, VideoAPI } from "@/net/models";
+import { getVideo } from "@/net/apis";
+import { VideoModel, CharacterModel } from "@/net/models";
 import Plyr from "plyr";
 import plyrIcons from "plyr/dist/plyr.svg";
+import VideoInfo from "./VideoInfo.vue";
+
+interface Character extends CharacterModel {
+  color: string;
+}
 
 export default Vue.extend({
   name: "Video",
-  components: {},
+  components: { VideoInfo },
   props: {
     id: String,
   },
@@ -26,11 +36,24 @@ export default Vue.extend({
     video: null as VideoModel | undefined | null,
 
     player: undefined as Plyr | undefined,
+
+    char: {
+      allChars: [] as Character[],
+
+      edit: false,
+
+      add: {
+        dialog: false,
+        name: "",
+        abbr: "",
+      },
+    },
   }),
   methods: {
     async loadVideo() {
       try {
-        const video = await api<VideoAPI>("videos/", { ID: this.id });
+        const video = await getVideo(this.id);
+
         this.video = video;
 
         this.player!.source = {
@@ -44,6 +67,10 @@ export default Vue.extend({
           ],
           poster: video.thumb,
         };
+
+        document.title = video.title;
+
+        this.$root.$emit("Video:loaded", video);
       } catch (e) {
         console.warn(e);
       }

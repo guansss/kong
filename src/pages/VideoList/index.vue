@@ -75,13 +75,8 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { api } from "@/net/net";
-import {
-  DownloadTask,
-  DownloadWSAPI,
-  DownloadRetryAPI,
-  VideosAPI,
-} from "@/net/models";
+import { getVideos, retryDownload } from "@/net/apis";
+import { DownloadTask, DownloadWSAPI } from "@/net/models";
 import { APIWebSocket } from "@/net/websocket";
 import { VideoEntry } from "./VideoEntry";
 
@@ -118,7 +113,7 @@ export default Vue.extend({
 
       this.refreshing = true;
 
-      const result = await api<VideosAPI>("videos/", {
+      const result = await getVideos({
         offset: (this.page - 1) * PAGE_SIZE,
         limit: PAGE_SIZE,
         order: "created",
@@ -173,9 +168,7 @@ export default Vue.extend({
     },
     async retry(video: VideoEntry) {
       try {
-        await api<DownloadRetryAPI>("download/retry/", {
-          ID: video.videoTask!.id,
-        });
+        await retryDownload(video.videoTask!.id);
       } catch (e) {
         console.warn(e + "");
       }

@@ -5,12 +5,6 @@ export const STATIC_SERVER = process.env.VUE_APP_STATIC_SERVER;
 
 export type APIPrimitive = string | number | boolean | undefined;
 
-export interface API {
-    url: string;
-    params: Record<string, APIPrimitive>;
-    result: any;
-}
-
 export function file(url: string): string {
     return new URL(url, STATIC_SERVER).toString();
 }
@@ -44,18 +38,39 @@ export function getSearchString(params?: Record<string, APIPrimitive>): string {
     return '';
 }
 
-export async function api<T = any>(
-    url: T extends API ? T['url'] : string,
-    params: T extends API ? T['params'] : (Record<string, APIPrimitive> | undefined),
-    type: 'json' | 'text' = 'json'
-): Promise<T extends API ? T['result'] : T> {
+export async function api<T>(
+    url: string,
+    method: string,
+    params?: Record<string, APIPrimitive>,
+    paramType?: 'search' | 'body',
+    resultType: 'json' | 'text' = 'json'
+): Promise<T> {
+    let fullURL = new URL(url, API_SERVER).toString();
 
-    const fullURL = new URL(url, API_SERVER).toString() + getSearchString(params);
+    if (params) {
+        if (!paramType) {
+            paramType = method === 'GET' ? 'search' : 'body';
+        }
 
-    const res = await fetch(fullURL);
+        if (paramType === 'search') {
+            fullURL += getSearchString(params);
+        }
+    }
+
+    // empty properties will be stripped
+    const headers = pickBy({
+        'Accept': resultType === 'json' ? 'application/json' : 'text/plain',
+        'Content-Type': paramType === 'body' ? 'application/json' : ''
+    }, value => value);
+
+    const res = await fetch(fullURL, {
+        method,
+        headers,
+        body: paramType === 'body' ? JSON.stringify(params || {}) : undefined,
+    });
 
     if (res.ok) {
-        if (type === 'text') {
+        if (resultType === 'text') {
             return res.text() as any;
         }
 

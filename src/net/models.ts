@@ -1,8 +1,7 @@
-import { API } from './net';
 import { WSAPI } from './websocket';
 
 export interface VideoModel {
-    id: string;
+    id: number;
     type: 'i';
     src_url: string;
     title: string;
@@ -21,27 +20,14 @@ export interface VideoModel {
 
     created: DOMTimeStamp;
     uploaded: DOMTimeStamp;
+
+    chars: CharacterModel[];
 }
 
-export interface VideosAPI extends API {
-    url: 'videos/',
-    params: {
-        offset?: number;
-        limit?: number;
-        order?: string;
-    };
-    result: {
-        list: VideoModel[];
-        total: number;
-    };
-}
-
-export interface VideoAPI extends API {
-    url: 'videos/',
-    params: {
-        ID: string;
-    };
-    result: VideoModel;
+export interface CharacterModel {
+    id: number;
+    name: string;
+    abbr: string;
 }
 
 export interface DownloadTask {
@@ -64,12 +50,4 @@ export interface DownloadWSAPI extends WSAPI {
         type: 'added' | 'loaded',
         data: string; // the task's ID
     };
-}
-
-export interface DownloadRetryAPI extends API {
-    url: 'download/retry/',
-    params: {
-        ID: string;
-    };
-    result: undefined;
 }
