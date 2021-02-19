@@ -60,10 +60,12 @@
             </template>
           </v-autocomplete>
           <v-text-field
+            clearable
             label="Abbriviation"
             v-model="char.add.abbr"
           ></v-text-field>
           <v-text-field
+            clearable
             label="Name"
             v-model="char.add.name"
           ></v-text-field>
@@ -84,6 +86,7 @@
             text
             :color="char.add.selected?'primary':'accent'"
             :loading="char.add.pending"
+            :disabled="!char.add.selected&&!(char.add.name&&char.add.abbr)"
             @click="submitChar"
           >
             {{char.add.selected?'Select':'Create'}}
@@ -148,14 +151,23 @@ export default Vue.extend({
     "video.chars": {
       immediate: true,
       handler(chars: Character[]) {
+        // generate a color for each character
         chars.forEach(
           (char) => (char.color = char.color ?? hslColor(char.name, "80%"))
         );
       },
     },
     "char.add.dialog"(value: boolean) {
-      if (value && !this.char.allChars.length) {
-        this.refreshAllChars();
+      if (value) {
+        // resect fields to prevent unexpected operation
+        this.char.add.selected = null;
+        this.char.add.name = '';
+        this.char.add.abbr = '';
+
+        // fetch characters
+        if (!this.char.allChars.length) {
+          this.refreshAllChars();
+        }
       }
     },
     "char.add.selected"(value: CharacterModel | null) {
@@ -200,14 +212,14 @@ export default Vue.extend({
       this.char.add.error = "";
       this.char.add.pending = true;
 
-      try {
+      try {//
         let added!: CharacterModel;
 
         if (this.char.add.selected) {
           added = this.char.add.selected;
 
           await addCharacterToVideo(this.video.id, added.id);
-        } else if ((this.char.add.name, this.char.add.abbr)) {
+        } else if (this.char.add.name && this.char.add.abbr) {
           added = await createCharacter(
             this.char.add.name,
             this.char.add.abbr,
