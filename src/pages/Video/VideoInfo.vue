@@ -43,15 +43,14 @@
       max-width="400px"
     >
       <v-card>
-        <v-card-title>
-          <span class="headline">Add Character</span>
-        </v-card-title>
+        <v-card-title class="headline">Add Character</v-card-title>
         <v-card-text>
           <v-autocomplete
             clearable
             return-object
+            :filter="matchChar"
             :loading="char.loading"
-            :items="searchChars"
+            :items="searchableChars"
             v-model="char.add.selected"
           >
             <template v-slot:selection="{item}">{{ `${item.name} (${item.abbr})` }}</template>
@@ -62,11 +61,13 @@
           <v-text-field
             clearable
             label="Abbriviation"
+            :disabled="!!char.add.selected"
             v-model="char.add.abbr"
           ></v-text-field>
           <v-text-field
             clearable
             label="Name"
+            :disabled="!!char.add.selected"
             v-model="char.add.name"
           ></v-text-field>
         </v-card-text>
@@ -99,6 +100,7 @@
 
 <script lang="ts">
 import Vue, { PropType } from "vue";
+import fuzzysearch from "fuzzysearch";
 import {
   getCharacters,
   createCharacter,
@@ -140,7 +142,7 @@ export default Vue.extend({
     },
   }),
   computed: {
-    searchChars() {
+    searchableChars() {
       // filter out characters of current video
       return this.char.allChars.filter(
         ({ id }) => !this.video.chars.some((char) => char.id === id)
@@ -161,8 +163,8 @@ export default Vue.extend({
       if (value) {
         // resect fields to prevent unexpected operation
         this.char.add.selected = null;
-        this.char.add.name = '';
-        this.char.add.abbr = '';
+        this.char.add.name = "";
+        this.char.add.abbr = "";
 
         // fetch characters
         if (!this.char.allChars.length) {
@@ -204,6 +206,12 @@ export default Vue.extend({
 
       char.pending = false;
     },
+    matchChar(char: CharacterModel, queryText: string, itemText: string) {
+      return (
+        fuzzysearch(queryText, char.name) ||
+        (char.abbr && fuzzysearch(queryText, char.abbr))
+      );
+    },
     async submitChar() {
       if (this.char.add.pending) {
         return;
@@ -212,7 +220,7 @@ export default Vue.extend({
       this.char.add.error = "";
       this.char.add.pending = true;
 
-      try {//
+      try {
         let added!: CharacterModel;
 
         if (this.char.add.selected) {
