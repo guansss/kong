@@ -1,4 +1,4 @@
-import VueRouter from 'vue-router';
+import VueRouter, { Route } from 'vue-router';
 
 export const router = new VueRouter({
     routes: [
@@ -8,6 +8,10 @@ export const router = new VueRouter({
             components: {
                 default: () => import('./VideoList/index.vue'),
                 bar: () => import('./VideoList/Bar.vue'),
+            },
+            props: {
+                default: getProps,
+                bar: getProps
             }
         },
         {
@@ -23,3 +27,7 @@ export const router = new VueRouter({
         }
     ]
 });
+
+function getProps(route: Route) {
+    return { ...route.params, ...route.query };
+}

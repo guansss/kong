@@ -54,12 +54,14 @@
           >
             <v-icon>mdi-open-in-new</v-icon>
           </v-btn>
-          <v-card-title>{{video.title}}</v-card-title>
+          <v-card-title :title="video.title">
+            <span class="text-truncate">{{video.title}}</span>
+          </v-card-title>
           <v-card-subtitle class="d-flex flex-wrap">
-            <a
+            <router-link
               class="author link mr-auto text-decoration-none"
-              href="#author"
-            >{{video.author_id}}</a>
+              :to="$query({author:video.author_id})"
+            >{{video.author_id}}</router-link>
             <span>{{video.created|date}}</span>
           </v-card-subtitle>
         </v-card>
@@ -67,8 +69,9 @@
     </v-row>
     <v-pagination
       v-if="total"
-      v-model="page"
+      :value="+page"
       :length="pages"
+      @input="$router.push($query({page:$event}))"
     ></v-pagination>
   </div>
 </template>
@@ -85,28 +88,35 @@ const PAGE_SIZE = 24;
 export default Vue.extend({
   name: "VideoList",
   components: {},
+  props: {
+    page: {
+      type: String,
+      default: "1",
+    },
+    char: {
+      type: String,
+      default: undefined,
+    },
+  },
   data: () => ({
     videos: [] as VideoEntry[],
 
     refreshing: false,
 
     total: 0,
-    page: 1,
     pages: 0,
 
     downloadWS: undefined as APIWebSocket<DownloadWSAPI> | undefined,
     downloadTasks: [] as DownloadTask[],
   }),
   watch: {
-    page(value: number) {
+    $route() {
       this.refresh();
     },
   },
   methods: {
-    reload() {
-      this.total = 0;
-    },
     async refresh() {
+      console.log("refresh");
       if (this.refreshing) {
         return;
       }
@@ -114,7 +124,7 @@ export default Vue.extend({
       this.refreshing = true;
 
       const result = await getVideos({
-        offset: (this.page - 1) * PAGE_SIZE,
+        offset: (+this.page - 1) * PAGE_SIZE,
         limit: PAGE_SIZE,
         order: "created",
       });
