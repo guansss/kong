@@ -95,7 +95,7 @@ export default Vue.extend({
       this.char.chars = chars.map((char) => ({
         ...char,
         type: "char",
-        color: "#B2452E",
+        color: "red darken-2",
         label: `${char.name} (${char.abbr})`,
       }));
     },

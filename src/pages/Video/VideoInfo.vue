@@ -18,12 +18,11 @@
       <v-subheader class="pl-0">Character</v-subheader>
       <div class="d-flex flex-wrap align-center">
         <v-chip
-          label
           v-for="char in video.chars"
           :key="char.id"
           class="mr-2 my-1"
-          :color="char.color"
-          :to="!edit?{name:'videos',query:{char:char.id}}:undefined"
+          color="red darken-2"
+          :to="!edit?{name:'videos',query:{char:char.id+''}}:undefined"
           :close="edit"
           :disabled="char.pending"
           @click:close="removeChar(char)"
@@ -108,10 +107,8 @@ import {
   removeCharacterFromVideo,
 } from "@/net/apis";
 import { VideoModel, CharacterModel } from "@/net/models";
-import { hslColor } from "@/utils/string";
 
 interface Character extends CharacterModel {
-  color: string;
   pending?: boolean;
 }
 
@@ -150,15 +147,6 @@ export default Vue.extend({
     },
   },
   watch: {
-    "video.chars": {
-      immediate: true,
-      handler(chars: Character[]) {
-        // generate a color for each character
-        chars.forEach(
-          (char) => (char.color = char.color ?? hslColor(char.name, "80%"))
-        );
-      },
-    },
     "char.add.dialog"(value: boolean) {
       if (value) {
         // resect fields to prevent unexpected operation
