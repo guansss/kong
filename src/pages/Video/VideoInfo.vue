@@ -26,7 +26,7 @@
           :close="edit"
           :disabled="char.pending"
           @click:close="removeChar(char)"
-        >{{`${char.name} (${char.abbr})`}}</v-chip>
+        >{{char.label}}</v-chip>
         <v-btn
           icon
           v-if="edit"
@@ -52,29 +52,29 @@
             :items="searchableChars"
             v-model="char.add.selected"
           >
-            <template v-slot:selection="{item}">{{ `${item.name} (${item.abbr})` }}</template>
+            <template v-slot:selection="{item}">{{ item.label }}</template>
             <template v-slot:item="{item}">
-              <v-list-item-content>{{ `${item.name} (${item.abbr})` }}</v-list-item-content>
+              <v-list-item-content>{{ item.label }}</v-list-item-content>
             </template>
           </v-autocomplete>
-          <v-text-field
-            clearable
-            label="Abbriviation"
-            :disabled="!!char.add.selected"
-            v-model="char.add.abbr"
-          ></v-text-field>
           <v-text-field
             clearable
             label="Name"
             :disabled="!!char.add.selected"
             v-model="char.add.name"
           ></v-text-field>
+          <v-text-field
+            clearable
+            label="Alias"
+            :disabled="!!char.add.selected"
+            v-model="char.add.alias"
+          ></v-text-field>
         </v-card-text>
+        <div
+          v-if="char.add.error"
+          class="subtitle-2 error--text"
+        >{{char.add.error}}</div>
         <v-card-actions>
-          <div
-            v-if="char.add.error"
-            class="subtitle-2 error--text"
-          >{{char.add.error}}</div>
           <v-spacer></v-spacer>
           <v-btn
             text
@@ -86,7 +86,7 @@
             text
             :color="char.add.selected?'primary':'accent'"
             :loading="char.add.pending"
-            :disabled="!char.add.selected&&!(char.add.name&&char.add.abbr)"
+            :disabled="!char.add.selected&&!char.add.name"
             @click="submitChar"
           >
             {{char.add.selected?'Select':'Create'}}
@@ -110,6 +110,11 @@ import { VideoModel, CharacterModel } from "@/net/models";
 
 interface Character extends CharacterModel {
   pending?: boolean;
+  label: string;
+}
+
+function getLabel(item: CharacterModel) {
+  return item.name + (item.alias ? ` (${item.alias})` : "");
 }
 
 export default Vue.extend({
@@ -126,14 +131,16 @@ export default Vue.extend({
 
     char: {
       loading: false,
-      allChars: [] as CharacterModel[],
+
+      // all available characters
+      allChars: [] as Character[],
 
       add: {
         dialog: false,
         pending: false,
-        selected: null as Nullable<CharacterModel>,
+        selected: null as Nullable<Character>,
         name: "",
-        abbr: "",
+        alias: "",
         error: "",
       },
     },
@@ -147,12 +154,20 @@ export default Vue.extend({
     },
   },
   watch: {
+    video: {
+      immediate: true,
+      handler(video: VideoModel) {
+        video.chars.forEach((char) => {
+          (char as Character).label = getLabel(char);
+        });
+      },
+    },
     "char.add.dialog"(value: boolean) {
       if (value) {
         // resect fields to prevent unexpected operation
         this.char.add.selected = null;
         this.char.add.name = "";
-        this.char.add.abbr = "";
+        this.char.add.alias = "";
 
         // fetch characters
         if (!this.char.allChars.length) {
@@ -162,7 +177,7 @@ export default Vue.extend({
     },
     "char.add.selected"(value: CharacterModel | null) {
       if (value) {
-        this.char.add.abbr = value.abbr;
+        this.char.add.alias = value.alias || "";
         this.char.add.name = value.name;
       }
     },
@@ -174,7 +189,12 @@ export default Vue.extend({
       }
 
       this.char.loading = true;
-      this.char.allChars = await getCharacters();
+
+      const chars = await getCharacters();
+      this.char.allChars = chars.map((char) =>
+        Object.assign(char, { label: getLabel(char) })
+      );
+
       this.char.loading = false;
     },
     async removeChar(char: Character) {
@@ -197,7 +217,7 @@ export default Vue.extend({
     matchChar(char: CharacterModel, queryText: string, itemText: string) {
       return (
         fuzzysearch(queryText, char.name) ||
-        (char.abbr && fuzzysearch(queryText, char.abbr))
+        (char.alias && fuzzysearch(queryText, char.alias))
       );
     },
     async submitChar() {
@@ -209,18 +229,20 @@ export default Vue.extend({
       this.char.add.pending = true;
 
       try {
-        let added!: CharacterModel;
+        let added!: Character;
 
         if (this.char.add.selected) {
           added = this.char.add.selected;
 
           await addCharacterToVideo(this.video.id, added.id);
-        } else if (this.char.add.name && this.char.add.abbr) {
-          added = await createCharacter(
+        } else if (this.char.add.name) {
+          const created = await createCharacter(
             this.char.add.name,
-            this.char.add.abbr,
+            this.char.add.alias || undefined,
             this.video.id
           );
+
+          added = Object.assign(created, { label: getLabel(created) });
         }
 
         this.video.chars.push(added);

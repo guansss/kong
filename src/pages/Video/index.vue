@@ -45,7 +45,7 @@ export default Vue.extend({
       add: {
         dialog: false,
         name: "",
-        abbr: "",
+        alias: "",
       },
     },
   }),

@@ -27,8 +27,8 @@ export async function getCharacters(): Promise<CharacterModel[]> {
     return api('chars', 'GET');
 }
 
-export async function createCharacter(name: string, abbr: string, video_id?: number): Promise<CharacterModel> {
-    return api('chars', 'POST', { name, abbr, video_id });
+export async function createCharacter(name: string, alias: string | undefined, video_id?: number): Promise<CharacterModel> {
+    return api('chars', 'POST', { name, alias, video_id });
 }
 
 export async function addCharacterToVideo(videoID: number, charID: number): Promise<void> {

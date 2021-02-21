@@ -27,7 +27,7 @@ export interface VideoModel {
 export interface CharacterModel {
     id: number;
     name: string;
-    abbr: string;
+    alias: string | null;
 }
 
 export interface DownloadTask {

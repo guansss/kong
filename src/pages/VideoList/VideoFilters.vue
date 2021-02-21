@@ -96,13 +96,13 @@ export default Vue.extend({
         ...char,
         type: "char",
         color: "red darken-2",
-        label: `${char.name} (${char.abbr})`,
+        label: char.name + (char.alias ? ` (${char.alias})` : ""),
       }));
     },
     matchFilter(filter: Filter, queryText: string, itemText: string) {
       return (
         fuzzysearch(queryText, filter.name) ||
-        (filter.abbr && fuzzysearch(queryText, filter.abbr))
+        (filter.alias && fuzzysearch(queryText, filter.alias))
       );
     },
     parseFilters() {

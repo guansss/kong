@@ -25,7 +25,7 @@ export function file(url: string): string {
 export function getSearchString(params?: Record<string, APIPrimitive>): string {
     if (params) {
         const qualifiedParams = pickBy(params,
-            (value, key) => value !== undefined && key !== 'ID'
+            (value, key) => value !== undefined
         );
 
         // despite the type incompatibility, URLSearchParams can actually
