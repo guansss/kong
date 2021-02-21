@@ -3,16 +3,17 @@ import VueRouter, { Route } from 'vue-router';
 export const router = new VueRouter({
     routes: [
         {
-            name: 'videos',
+            name: 'home',
             path: '/',
+            redirect: { name: 'videos' }
+        },
+        {
+            name: 'videos',
+            path: '/videos',
             components: {
                 default: () => import('./VideoList/index.vue'),
                 bar: () => import('./VideoList/Bar.vue'),
             },
-            props: {
-                default: getProps,
-                bar: getProps
-            }
         },
         {
             name: 'video',

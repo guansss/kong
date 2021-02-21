@@ -1,6 +1,8 @@
 <template>
-  <div class="pb-4 w100">
-    <v-row class="px-1 px-md-5 py-5">
+  <v-container>
+    <VideoFilters />
+
+    <v-row class="mx-n5 mx-md-n1 mt-n1 mb-1">
       <v-col
         v-for="video in videos"
         :key="video.id"
@@ -10,7 +12,7 @@
       >
         <v-card
           class="item"
-          :to="video.videoLoaded?'/videos/'+video.id:undefined"
+          :to="video.videoLoaded?{name:'video',params:{id:video.id}}:undefined"
           target="_blank"
         >
           <v-img
@@ -69,11 +71,11 @@
     </v-row>
     <v-pagination
       v-if="total"
-      :value="+page"
+      :value="page"
       :length="pages"
       @input="$router.push($query({page:$event}))"
     ></v-pagination>
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -82,41 +84,33 @@ import { getVideos, retryDownload } from "@/net/apis";
 import { DownloadTask, DownloadWSAPI } from "@/net/models";
 import { APIWebSocket } from "@/net/websocket";
 import { VideoEntry } from "./VideoEntry";
+import VideoFilters from "./VideoFilters.vue";
 
 const PAGE_SIZE = 24;
 
 export default Vue.extend({
   name: "VideoList",
-  components: {},
-  props: {
-    page: {
-      type: String,
-      default: "1",
-    },
-    char: {
-      type: String,
-      default: undefined,
-    },
-  },
+  components: { VideoFilters },
+  props: {},
   data: () => ({
     videos: [] as VideoEntry[],
 
     refreshing: false,
 
     total: 0,
+    page: 1,
     pages: 0,
+
+    char: undefined as string | undefined,
 
     downloadWS: undefined as APIWebSocket<DownloadWSAPI> | undefined,
     downloadTasks: [] as DownloadTask[],
   }),
-  watch: {
-    $route() {
-      this.refresh();
-    },
-  },
   methods: {
     async refresh() {
-      console.log("refresh");
+      this.page = +this.$route.query.page || 1;
+      this.char = (this.$route.query.char as string) || undefined;
+
       if (this.refreshing) {
         return;
       }
@@ -127,6 +121,7 @@ export default Vue.extend({
         offset: (+this.page - 1) * PAGE_SIZE,
         limit: PAGE_SIZE,
         order: "created",
+        char: this.char,
       });
 
       this.total = result.total;
@@ -135,9 +130,6 @@ export default Vue.extend({
       this.videos = result.list.map((video) => new VideoEntry(video));
 
       this.refreshing = false;
-
-      // scroll to top
-      window.scroll(0, 0);
     },
     async trackTasks() {
       try {
@@ -187,6 +179,10 @@ export default Vue.extend({
   created() {
     this.refresh();
     this.trackTasks();
+  },
+  beforeRouteUpdate(to, from, next) {
+    next();
+    this.refresh();
   },
   beforeDestroy() {
     this.downloadWS?.close();

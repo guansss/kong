@@ -59,9 +59,10 @@ export default Vue.extend({
   }),
   methods: {
     async reload() {
-      this.$router.push("/nonexisting");
+      const path = this.$route.fullPath;
+      this.$router.replace("/nonexisting");
       await this.$nextTick();
-      this.$router.go(-1);
+      this.$router.replace(path);
     },
     snack(message: string, timeout: number = 5000) {
       this.snackbar.message = message;
