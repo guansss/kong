@@ -56,15 +56,33 @@
           >
             <v-icon>mdi-open-in-new</v-icon>
           </v-btn>
-          <v-card-title :title="video.title">
-            <span class="text-truncate">{{video.title}}</span>
-          </v-card-title>
-          <v-card-subtitle class="d-flex flex-wrap">
-            <router-link
-              class="author link mr-auto text-decoration-none"
-              :to="$query({author:video.author_id})"
-            >{{video.author_id}}</router-link>
-            <span>{{video.created|date}}</span>
+          <div
+            class="pa-2"
+            :title="video.title"
+          >
+            <div class="text-truncate">{{video.title}}</div>
+          </div>
+          <v-card-subtitle class="px-2 pt-0 pb-2">
+            <div
+              v-if="video.chars.length"
+              class="d-flex flex-wrap"
+            >
+              <router-link
+                v-for="char in video.chars"
+                :key="char.id"
+                class="link mr-2 pink--text text--lighten-2"
+                :to="{query:{char:char.id+''}}"
+              >{{char.name}}</router-link>
+            </div>
+            <pre v-else> </pre>
+
+            <div class="mt-1 d-flex flex-wrap">
+              <router-link
+                class="author link mr-auto"
+                :to="$query({author:video.author_id})"
+              >{{video.author_id}}</router-link>
+              <span>{{video.created|date}}</span>
+            </div>
           </v-card-subtitle>
         </v-card>
       </v-col>
@@ -195,7 +213,7 @@ export default Vue.extend({
   transition: background-color 0.15s ease-out;
 
   &.theme--dark:hover {
-    background-color: #555;
+    background-color: #333;
   }
 }
 
@@ -208,7 +226,7 @@ div.item {
   color: inherit;
 
   &:hover {
-    color: var(--v-info-lighten1);
+    color: var(--v-info-base);
   }
 }
 </style>
