@@ -19,7 +19,10 @@
             :src="video.thumbLoaded?video.thumb:undefined"
             :aspect-ratio="16/9"
           >
-            <div class="cover fill-height d-flex flex-column justify-center text-center">
+            <div
+              class="cover fill-height d-flex flex-column justify-center text-center"
+              :style="video.error&&'background:rgba(0,0,0,.5)'"
+            >
               <template v-if="video.videoTask">
                 <div class="mb-1 text-h4">{{~~(video.videoTask.loaded/video.videoTask.size*100)}}%</div>
                 <div class="subtitle-1">
@@ -65,7 +68,7 @@
                     <v-list-item-title>Open Source</v-list-item-title>
                   </v-list-item>
                   <v-list-item @click="remove(video)">
-                    <v-list-item-title>Delete</v-list-item-title>
+                    <v-list-item-title class="error--text text--lighten-1">Delete</v-list-item-title>
                   </v-list-item>
                 </v-list>
               </v-menu>

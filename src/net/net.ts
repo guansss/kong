@@ -79,14 +79,20 @@ export async function api<T>(
         let message = '';
 
         try {
-            const apiError = await res.json();
+            const { detail } = await res.json();
 
-            message = apiError.detail || '';
+            if (Array.isArray(detail)) {
+                console.warn(detail);
+
+                message = detail.map(item => item.msg).join('; ');
+            } else {
+                message = detail;
+            }
         } catch (e) {
             console.warn('Could not parse API error.', e);
         }
 
-        throw new NetworkError(message, fullURL, res.status);
+        throw new NetworkError(message ?? '', fullURL, res.status);
     }
 }
 

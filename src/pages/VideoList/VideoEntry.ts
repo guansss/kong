@@ -21,7 +21,8 @@ export class VideoEntry {
 
     deleting = false;
 
-    error?: string;
+    // null to be reactive in Vue
+    error: Nullable<string> = null;
 
     constructor(video: VideoModel) {
         Object.assign(this, video);
@@ -113,12 +114,15 @@ export class VideoEntry {
         }
 
         this.deleting = true;
+        this.error = undefined;
 
-        await deleteVideo(this.id).catch((e) => {
+        try {
+            await deleteVideo(this.id);
+        } catch (e) {
             this.error = e;
             throw e;
-        });
-
-        this.deleting = false;
+        } finally {
+            this.deleting = false;
+        }
     }
 }
