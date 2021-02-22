@@ -92,10 +92,6 @@ export async function api<T>(
 
 class NetworkError extends Error {
     constructor(message: string, public url: string, public status: number) {
-        super(message);
-    }
-
-    toString() {
-        return `NetworkError: ${this.message} (url=${this.url}, status=${this.status})`;
+        super(`NetworkError: ${message} (url=${url}, status=${status})`);
     }
 }

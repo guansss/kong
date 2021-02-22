@@ -1,4 +1,5 @@
 import { VideoModel, DownloadTask } from '@/net/models';
+import { deleteVideo } from '@/net/apis';
 
 const SPEED_FILTER_STRENGTH = 5;
 
@@ -17,6 +18,8 @@ export class VideoEntry {
 
     // last time the speed is updated
     speedUpdateTime: DOMTimeStamp = 0;
+
+    deleting = false;
 
     error?: string;
 
@@ -102,5 +105,20 @@ export class VideoEntry {
             this.speed += (instantaneousSpeed - this.speed) / SPEED_FILTER_STRENGTH;
             this.speedUpdateTime = now;
         }
+    }
+
+    async remove() {
+        if (this.deleting) {
+            return;
+        }
+
+        this.deleting = true;
+
+        await deleteVideo(this.id).catch((e) => {
+            this.error = e;
+            throw e;
+        });
+
+        this.deleting = false;
     }
 }

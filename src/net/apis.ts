@@ -15,11 +15,15 @@ export async function getVideos(
     return api('videos', 'GET', params);
 }
 
-export async function getVideo(id: string): Promise<VideoModel> {
+export async function getVideo(id: string | number): Promise<VideoModel> {
     return api(`videos/${id}`, 'GET');
 }
 
-export async function retryDownload(id: string): Promise<void> {
+export async function deleteVideo(id: string | number): Promise<VideoModel> {
+    return api(`videos/${id}`, 'DELETE');
+}
+
+export async function retryDownload(id: string | number): Promise<void> {
     return api(`download/retry/${id}`, 'GET');
 }
 

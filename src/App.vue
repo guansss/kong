@@ -24,6 +24,8 @@
       </v-container>
     </v-main>
 
+    <Confirm />
+
     <v-snackbar
       v-model="snackbar.visible"
       :timeout="snackbar.timeout"
@@ -44,10 +46,11 @@
 
 <script lang="ts">
 import Vue from "vue";
+import Confirm from "@/components/Confirm.vue";
 
 export default Vue.extend({
   name: "App",
-  components: {},
+  components: { Confirm },
   data: () => ({
     drawer: false,
 

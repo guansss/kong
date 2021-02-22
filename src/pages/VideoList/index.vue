@@ -19,43 +19,58 @@
             :src="video.thumbLoaded?video.thumb:undefined"
             :aspect-ratio="16/9"
           >
-            <div
-              v-if="!video.videoLoaded"
-              class="fill-height d-flex flex-column text-center justify-center"
-            >
+            <div class="cover fill-height d-flex flex-column justify-center text-center">
               <template v-if="video.videoTask">
-                <div class="mb-1 display-1">{{~~(video.videoTask.loaded/video.videoTask.size*100)}}%</div>
+                <div class="mb-1 text-h4">{{~~(video.videoTask.loaded/video.videoTask.size*100)}}%</div>
                 <div class="subtitle-1">
                   {{video.videoTask.loaded|size}} / {{video.videoTask.size|size}}<br>
-                  ({{video.speed|size}} / s)
+                  ({{video.speed|size}}/s)
                 </div>
               </template>
               <div
                 v-if="video.error"
                 class="subtitle-1"
               >{{video.error}}</div>
+              <v-btn
+                icon
+                absolute
+                v-if="video.error&&video.videoTask"
+                class=""
+                style="top:0;left:0"
+                @click="retry(video)"
+              >
+                <v-icon>mdi-reload</v-icon>
+              </v-btn>
+              <v-menu
+                bottom
+                left
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    icon
+                    absolute
+                    style="top:0;right:0"
+                    v-bind="attrs"
+                    v-on="on"
+                    @click.stop.prevent
+                  >
+                    <v-icon>mdi-dots-vertical</v-icon>
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item
+                    :href="video.src_url"
+                    target="_blank"
+                  >
+                    <v-list-item-title>Open Source</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item @click="remove(video)">
+                    <v-list-item-title>Delete</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </div>
           </v-img>
-          <v-btn
-            icon
-            absolute
-            v-if="video.error&&video.videoTask"
-            class=" ma-2"
-            style="top:0"
-            @click="retry(video)"
-          >
-            <v-icon>mdi-reload</v-icon>
-          </v-btn>
-          <v-btn
-            icon
-            absolute
-            :href="video.src_url"
-            target="_blank"
-            class="ma-2"
-            style="top:0;right:0"
-          >
-            <v-icon>mdi-open-in-new</v-icon>
-          </v-btn>
           <div
             class="pa-2"
             :title="video.title"
@@ -74,6 +89,7 @@
                 :to="{query:{char:char.id+''}}"
               >{{char.name}}</router-link>
             </div>
+            <!-- a whitespace to hold the place when the video has no characters -->
             <pre v-else> </pre>
 
             <div class="mt-1 d-flex flex-wrap">
@@ -193,6 +209,17 @@ export default Vue.extend({
         console.warn(e + "");
       }
     },
+    async remove(video: VideoEntry) {
+      this.$root.$emit("Confirm:show", {
+        title: "Delete Video",
+        content: video.title,
+        confirm: (confirmed: boolean) => {
+          if (confirmed) {
+            video.remove().then(this.refresh).catch(console.warn);
+          }
+        },
+      });
+    },
   },
   created() {
     this.refresh();
@@ -210,7 +237,7 @@ export default Vue.extend({
 
 <style scoped lang="scss">
 .item {
-  transition: background-color 0.15s ease-out;
+  transition: background-color 0.1s ease-out;
 
   &.theme--dark:hover {
     background-color: #333;
@@ -220,6 +247,22 @@ export default Vue.extend({
 // don't show a text selector on items rendered as <div> instead of <a>
 div.item {
   cursor: default;
+}
+
+.cover {
+  &:before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 40%);
+    transition: opacity 0.1s ease-out;
+  }
+
+  &:hover:before {
+    opacity: 1;
+  }
 }
 
 .author {
