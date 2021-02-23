@@ -21,7 +21,7 @@ import Vue from "vue";
 import AppBar from "@/components/AppBar.vue";
 
 export default Vue.extend({
-  name: "Bar",
+  name: "VideoListBar",
   components: { AppBar },
   data: () => ({
     filtersVisible: false,

@@ -11,16 +11,16 @@ export const router = new VueRouter({
             name: 'videos',
             path: '/videos',
             components: {
-                default: () => import('./VideoList/index.vue'),
-                bar: () => import('./VideoList/Bar.vue'),
+                default: () => import('./VideoList/VideoList.vue'),
+                bar: () => import('./VideoList/VideoListBar.vue'),
             },
         },
         {
             name: 'video',
             path: '/videos/:id',
             components: {
-                default: () => import('./Video/index.vue'),
-                bar: () => import('./Video/Bar.vue'),
+                default: () => import('./Video/Video.vue'),
+                bar: () => import('./Video/VideoBar.vue'),
             },
             props: {
                 default: true

@@ -22,7 +22,7 @@ import AppBar from "@/components/AppBar.vue";
 import { VideoModel } from "@/models";
 
 export default Vue.extend({
-  name: "Bar",
+  name: "VideoBar",
   components: { AppBar },
   data: () => ({
     title: "",
