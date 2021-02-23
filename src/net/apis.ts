@@ -27,6 +27,13 @@ export async function deleteVideo(id: string | number): Promise<void> {
     return api(`videos/${id}`, 'DELETE');
 }
 
+export async function updateVideo(
+    id: string | number,
+    props: Partial<Pick<VideoRecord, 'rating'>>
+): Promise<VideoRecord> {
+    return api(`videos/${id}`, 'PATCH', props);
+}
+
 export async function retryDownload(id: string | number): Promise<void> {
     return api(`download/retry/${id}`, 'GET');
 }

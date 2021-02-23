@@ -48,12 +48,12 @@
                 class="rating pa-1"
               >
                 <v-icon
-                  v-for="i in ~~(video.rating/2)"
+                  v-for="i in ~~video.rating"
                   :key="i"
                   color="yellow"
                 >mdi-star</v-icon>
                 <v-icon
-                  v-if="video.rating%2===1"
+                  v-if="video.rating%1===0.5"
                   color="yellow"
                 >mdi-star-half-full</v-icon>
               </div>

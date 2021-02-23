@@ -3,7 +3,7 @@ import { pickBy } from 'lodash';
 export const API_SERVER = process.env.VUE_APP_API_SERVER;
 export const STATIC_SERVER = process.env.VUE_APP_STATIC_SERVER;
 
-export type APIPrimitive = string | number | boolean | undefined;
+export type APIPrimitive = string | number | boolean | undefined | null;
 
 export function file(url: string): string {
     return new URL(url, STATIC_SERVER).toString();

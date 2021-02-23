@@ -14,7 +14,8 @@
       color="yellow"
       background-color="yellow lighten-3"
       :readonly="!edit"
-      v-model="video.rating"
+      :value="video.rating"
+      @input="video.setRating($event)"
     ></v-rating>
     <div class="d-flex align-center">
       <v-subheader class="pl-0">Character</v-subheader>
