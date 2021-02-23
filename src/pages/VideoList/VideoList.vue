@@ -166,10 +166,12 @@ export default Vue.extend({
 
       this.refreshing = true;
 
+      const order = (this.$route.query.order as string) || "created";
+
       const result = await getVideos({
         offset: (+this.page - 1) * PAGE_SIZE,
         limit: PAGE_SIZE,
-        order: "created",
+        order: order,
         char: this.char,
       });
 

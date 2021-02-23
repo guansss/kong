@@ -36,19 +36,40 @@
         close
         v-for="filter in filters"
         :key="filter.type+filter.id"
-        class="mr-2 my-1"
+        class="mr-2"
         :disabled="navigating"
         :color="filter.color"
         @click:close="removeFilter(filter)"
       >{{filter.label}}</v-chip>
+      <v-spacer></v-spacer>
       <v-btn
         icon
-        v-if="filters.length"
+        v-if="filters.length||order"
+        class="mr-2"
         :disabled="navigating"
         @click="removeAllFilters"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
+      <v-btn-toggle
+        dense
+        borderless
+        color="primary"
+        active-class="primary--text"
+        :mandatory="!!order"
+      >
+        <v-btn
+          v-for="item in [['rating','star'],['created','clock-outline']]"
+          :key="item[0]"
+          @click="setOrder(item[0])"
+        >
+          <v-icon>mdi-{{item[1]}}</v-icon>
+          <v-icon
+            small
+            v-if="order.endsWith(item[0])"
+          >{{order.startsWith('-')?'mdi-chevron-up':'mdi-chevron-down'}}</v-icon>
+        </v-btn>
+      </v-btn-toggle>
     </div>
   </div>
 </template>
@@ -79,6 +100,8 @@ export default Vue.extend({
       chars: [] as Filter<CharacterModel>[],
       selected: [] as Filter<CharacterModel>[],
     },
+
+    order: "",
 
     filters: [] as Filter[],
   }),
@@ -116,6 +139,8 @@ export default Vue.extend({
         this.char.selected = [];
       }
 
+      this.order = (query.order as string) || "";
+
       this.updateFilters(false);
     },
     removeFilter(filter: Filter) {
@@ -127,6 +152,7 @@ export default Vue.extend({
     },
     removeAllFilters() {
       this.char.selected = [];
+      this.order = "";
       this.updateFilters();
     },
     async updateFilters(navigate = true) {
@@ -136,12 +162,23 @@ export default Vue.extend({
         this.navigate();
       }
     },
+    setOrder(order: string) {
+      if (this.order === order) {
+        // invert the order by prefixing the "-", which means ascending
+        this.order = "-" + order;
+      } else {
+        this.order = order;
+      }
+
+      this.navigate();
+    },
     async navigate() {
       this.navigating = true;
 
       await this.$router.push(
         this.$query({
           char: this.char.selected.map((char) => char.id).join(","),
+          order: this.order,
         })
       );
 
@@ -161,4 +198,7 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
+.v-icon {
+  color: inherit !important;
+}
 </style>
