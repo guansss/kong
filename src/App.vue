@@ -110,7 +110,6 @@ export default Vue.extend({
 
 a.link {
   text-decoration: none;
-  transition: filter 0.15s ease-out;
 
   &:hover {
     filter: brightness(150%);

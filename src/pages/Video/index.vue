@@ -17,7 +17,7 @@
 <script lang="ts">
 import Vue from "vue";
 import { getVideo } from "@/net/apis";
-import { VideoModel, CharacterModel } from "@/net/models";
+import { VideoModel, CharacterModel } from "@/models";
 import Plyr from "plyr";
 import plyrIcons from "plyr/dist/plyr.svg";
 import VideoInfo from "./VideoInfo.vue";

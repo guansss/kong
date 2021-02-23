@@ -7,13 +7,15 @@
       >{{video.author_id}}</router-link>
       <span class="ml-auto subtitle-2 text--secondary">{{video.created|date}}</span>
     </div>
-    <v-btn
-      icon
-      :class="{'primary--text':edit}"
-      @click="edit=!edit"
-    >
-      <v-icon>mdi-cog</v-icon>
-    </v-btn>
+    <v-rating
+      hover
+      half-increments
+      class="ml-n2"
+      color="yellow"
+      background-color="yellow lighten-3"
+      :readonly="!edit"
+      v-model="video.rating"
+    ></v-rating>
     <div class="d-flex align-center">
       <v-subheader class="pl-0">Character</v-subheader>
       <div class="d-flex flex-wrap align-center">
@@ -62,12 +64,14 @@
             label="Name"
             :disabled="!!char.add.selected"
             v-model="char.add.name"
+            @keyup.enter="submitChar"
           ></v-text-field>
           <v-text-field
             clearable
             label="Alias"
             :disabled="!!char.add.selected"
             v-model="char.add.alias"
+            @keyup.enter="submitChar"
           ></v-text-field>
         </v-card-text>
         <div
@@ -100,13 +104,8 @@
 <script lang="ts">
 import Vue, { PropType } from "vue";
 import fuzzysearch from "fuzzysearch";
-import {
-  getCharacters,
-  createCharacter,
-  addCharacterToVideo,
-  removeCharacterFromVideo,
-} from "@/net/apis";
-import { VideoModel, CharacterModel } from "@/net/models";
+import { getCharacters, removeCharacterFromVideo } from "@/net/apis";
+import { VideoModel, CharacterModel } from "@/models";
 
 interface Character extends CharacterModel {
   pending?: boolean;
@@ -183,6 +182,9 @@ export default Vue.extend({
     },
   },
   methods: {
+    setEdit(edit: boolean) {
+      this.edit = edit;
+    },
     async refreshAllChars() {
       if (this.char.loading) {
         return;
@@ -234,18 +236,16 @@ export default Vue.extend({
         if (this.char.add.selected) {
           added = this.char.add.selected;
 
-          await addCharacterToVideo(this.video.id, added.id);
+          await this.video.addCharacter(added);
         } else if (this.char.add.name) {
-          const created = await createCharacter(
+          const created = await this.video.addNewCharacter(
             this.char.add.name,
-            this.char.add.alias || undefined,
-            this.video.id
+            this.char.add.alias
           );
 
           added = Object.assign(created, { label: getLabel(created) });
         }
 
-        this.video.chars.push(added);
         this.char.allChars.push(added);
 
         this.char.add.dialog = false;
@@ -256,7 +256,12 @@ export default Vue.extend({
       this.char.add.pending = false;
     },
   },
-  created() {},
+  created() {
+    this.$root.$on("Video:edit", this.setEdit);
+  },
+  beforeDestroy() {
+    this.$root.$off("Video:edit", this.setEdit);
+  },
 });
 </script>
 

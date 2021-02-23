@@ -57,7 +57,7 @@
 import Vue from "vue";
 import fuzzysearch from "fuzzysearch";
 import { getCharacters } from "@/net/apis";
-import { CharacterModel } from "@/net/models";
+import { CharacterModel } from "@/models";
 import { pull } from "@/utils/collection";
 
 type Filter<T = CharacterModel> = T & {

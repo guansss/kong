@@ -38,12 +38,25 @@
                 icon
                 absolute
                 v-if="video.error&&video.videoTask"
-                class=""
                 style="top:0;left:0"
                 @click="retry(video)"
               >
                 <v-icon>mdi-reload</v-icon>
               </v-btn>
+              <div
+                v-else
+                class="rating pa-1"
+              >
+                <v-icon
+                  v-for="i in ~~(video.rating/2)"
+                  :key="i"
+                  color="yellow"
+                >mdi-star</v-icon>
+                <v-icon
+                  v-if="video.rating%2===1"
+                  color="yellow"
+                >mdi-star-half-full</v-icon>
+              </div>
               <v-menu
                 bottom
                 left
@@ -117,10 +130,9 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { getVideos, retryDownload } from "@/net/apis";
-import { DownloadTask, DownloadWSAPI } from "@/net/models";
+import { getVideos } from "@/net/apis";
+import { DownloadTrackingVideo, DownloadTask, DownloadWSAPI } from "@/models";
 import { APIWebSocket } from "@/net/websocket";
-import { VideoEntry } from "./VideoEntry";
 import VideoFilters from "./VideoFilters.vue";
 
 const PAGE_SIZE = 24;
@@ -130,7 +142,7 @@ export default Vue.extend({
   components: { VideoFilters },
   props: {},
   data: () => ({
-    videos: [] as VideoEntry[],
+    videos: [] as DownloadTrackingVideo[],
 
     refreshing: false,
 
@@ -164,7 +176,9 @@ export default Vue.extend({
       this.total = result.total;
       this.pages = Math.ceil(this.total / PAGE_SIZE);
 
-      this.videos = result.list.map((video) => new VideoEntry(video));
+      this.videos = result.list.map(
+        (video) => new DownloadTrackingVideo(video)
+      );
 
       this.refreshing = false;
     },
@@ -205,14 +219,10 @@ export default Vue.extend({
         this.refresh();
       }
     },
-    async retry(video: VideoEntry) {
-      try {
-        await retryDownload(video.videoTask!.id);
-      } catch (e) {
-        console.warn(e + "");
-      }
+    retry(video: DownloadTrackingVideo) {
+      video.retryDownload();
     },
-    async remove(video: VideoEntry) {
+    async remove(video: DownloadTrackingVideo) {
       this.$root.$emit("Confirm:show", {
         title: "Delete Video",
         content: video.title,
@@ -266,6 +276,13 @@ div.item {
   &:hover:before {
     opacity: 1;
   }
+}
+
+.rating {
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-shadow: 0 0 2px black, 0 0 2px black;
 }
 
 .author {

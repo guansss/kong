@@ -1,14 +1,37 @@
-import { VideoModel, DownloadTask } from '@/net/models';
-import { deleteVideo } from '@/net/apis';
+import { retryDownload } from '@/net/apis';
+import { WSAPI } from '@/net/websocket';
+import { VideoModel } from './video';
 
 const SPEED_FILTER_STRENGTH = 5;
 
-export interface VideoEntry extends VideoModel { }
+export interface DownloadTask {
+    id: string;
+    loaded: number;
+    size: number;
+    error?: string;
+}
 
-export class VideoEntry {
-    // default to nulls so they can be reactive in Vue
-    videoTask: DownloadTask | null | undefined = null;
-    thumbTask: DownloadTask | null | undefined = null;
+export interface DownloadWSAPI extends WSAPI {
+    url: 'download/',
+    params: {
+        interval?: number;
+    },
+    send: '';
+    receive: {
+        type: 'tasks',
+        data: DownloadTask[];
+    } | {
+        type: 'added' | 'loaded',
+        data: string; // the task's ID
+    };
+}
+
+export interface DownloadTrackingVideo extends VideoModel { }
+
+export class DownloadTrackingVideo {
+    // null to be reactive in Vue
+    videoTask: Nullable<DownloadTask> = null;
+    thumbTask: Nullable<DownloadTask> = null;
 
     videoLoaded: boolean;
     thumbLoaded: boolean;
@@ -19,18 +42,11 @@ export class VideoEntry {
     // last time the speed is updated
     speedUpdateTime: DOMTimeStamp = 0;
 
-    deleting = false;
-
-    // null to be reactive in Vue
-    error: Nullable<string> = null;
-
     constructor(video: VideoModel) {
         Object.assign(this, video);
 
         this.videoLoaded = !video.video_dl_id;
         this.thumbLoaded = !video.thumb_dl_id;
-
-        this.thumb = process.env.VUE_APP_STATIC_SERVER + "/test.jpg";
     }
 
     updateTask(tasks: DownloadTask[]) {
@@ -92,6 +108,17 @@ export class VideoEntry {
         return false;
     }
 
+    async retryDownload() {
+        this.error = undefined;
+
+        try {
+            await retryDownload(this.videoTask!.id);
+        } catch (e) {
+            console.warn(e);
+            this.error = e;
+        }
+    }
+
     updateProgress(loaded: number, lastLoaded: number) {
         if (this.videoTask) {
             const now = Date.now();
@@ -105,24 +132,6 @@ export class VideoEntry {
 
             this.speed += (instantaneousSpeed - this.speed) / SPEED_FILTER_STRENGTH;
             this.speedUpdateTime = now;
-        }
-    }
-
-    async remove() {
-        if (this.deleting) {
-            return;
-        }
-
-        this.deleting = true;
-        this.error = undefined;
-
-        try {
-            await deleteVideo(this.id);
-        } catch (e) {
-            this.error = e;
-            throw e;
-        } finally {
-            this.deleting = false;
         }
     }
 }

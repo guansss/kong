@@ -7,23 +7,34 @@
     >
       <v-icon>mdi-reload</v-icon>
     </v-btn>
+    <v-btn
+      icon
+      @click="toggleEdit"
+    >
+      <v-icon>{{edit?'mdi-cog-off':'mdi-cog'}}</v-icon>
+    </v-btn>
   </app-bar>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import AppBar from "@/components/AppBar.vue";
-import { VideoModel } from "@/net/models";
+import { VideoModel } from "@/models";
 
 export default Vue.extend({
   name: "Bar",
   components: { AppBar },
   data: () => ({
     title: "",
+    edit: false,
   }),
   methods: {
     videoLoaded(video: VideoModel) {
       this.title = video.title;
+    },
+    toggleEdit() {
+      this.edit = !this.edit;
+      this.$root.$emit("Video:edit", this.edit);
     },
   },
   created() {

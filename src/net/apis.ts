@@ -1,4 +1,4 @@
-import { CharacterModel, VideoModel } from './models';
+import { CharacterModel, VideoModel, VideoList, VideoRecord } from '@/models';
 import { api } from './net';
 
 export async function getVideos(
@@ -8,18 +8,22 @@ export async function getVideos(
         limit?: number;
         order?: string;
     }
-): Promise<{
-    list: VideoModel[];
-    total: number;
-}> {
-    return api('videos', 'GET', params);
+): Promise<VideoList> {
+    // this is what the API actually returns
+    type APIVideoList = Omit<VideoList, 'list'> & { list: VideoRecord[]; };
+
+    const result = await api<APIVideoList>('videos', 'GET', params);
+
+    result.list = result.list.map(VideoModel.create);
+
+    return result as VideoList;
 }
 
 export async function getVideo(id: string | number): Promise<VideoModel> {
-    return api(`videos/${id}`, 'GET');
+    return api<VideoRecord>(`videos/${id}`, 'GET').then(VideoModel.create);
 }
 
-export async function deleteVideo(id: string | number): Promise<VideoModel> {
+export async function deleteVideo(id: string | number): Promise<void> {
     return api(`videos/${id}`, 'DELETE');
 }
 
