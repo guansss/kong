@@ -8,16 +8,27 @@
       app
       v-model="drawer"
     >
-      <v-toolbar color="primary">
-        <v-toolbar-title>Kong</v-toolbar-title>
-      </v-toolbar>
+      <v-list-item>
+        <v-list-item-content>
+          <v-list-item-title class="text-h4">Kong</v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+      <v-divider></v-divider>
+      <v-list>
+        <v-list-item
+          v-for="item in [['Videos','videos']]"
+          :key="item[0]"
+          :to="{name: item[1]}"
+        >
+          <v-list-item-content>
+            <v-list-item-title>{{item[0]}}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
     </v-navigation-drawer>
 
     <v-main>
-      <v-container
-        fluid
-        class="pa-0 fill-height flex-column"
-      >
+      <v-container class="pa-0 fill-height flex-column">
         <v-fade-transition mode="out-in">
           <router-view></router-view>
         </v-fade-transition>
@@ -84,7 +95,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.$root.$on("drawer", () => (this.drawer = true));
+    this.$root.$on("drawer", () => (this.drawer = !this.drawer));
     this.$root.$on("reload", this.reload);
   },
 });
