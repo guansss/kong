@@ -2,13 +2,13 @@ import Vue from 'vue';
 import VueApp from './App.vue';
 import vuetify from './plugins/vuetify';
 import './plugins/router';
-import './filters'
+import './filters';
 import { App } from '@/app/App';
 import { router } from './pages/router';
 
 Vue.config.productionTip = false;
 
-Vue.directive('visible', function (el, binding) {
+Vue.directive('visible', function(el, binding) {
     el.style.visibility = !!binding.value ? 'visible' : 'hidden';
 });
 

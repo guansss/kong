@@ -5,7 +5,7 @@ export const router = new VueRouter({
         {
             name: 'home',
             path: '/',
-            redirect: { name: 'videos' }
+            redirect: { name: 'videos' },
         },
         {
             name: 'videos',
@@ -23,10 +23,10 @@ export const router = new VueRouter({
                 bar: () => import('./Video/VideoBar.vue'),
             },
             props: {
-                default: true
-            }
-        }
-    ]
+                default: true,
+            },
+        },
+    ],
 });
 
 function getProps(route: Route) {

@@ -1,5 +1,5 @@
 declare module 'fuzzysearch' {
-    export default function (needle: string, haystack: string): boolean;
+    export default function(needle: string, haystack: string): boolean;
 }
 
 declare module '*.svg' {

@@ -2,16 +2,16 @@
   <app-bar title="Videos">
     <v-spacer></v-spacer>
     <v-btn
-      icon
-      @click="$root.$emit('reload')"
+        icon
+        @click="$root.$emit('reload')"
     >
       <v-icon>mdi-reload</v-icon>
     </v-btn>
     <v-btn
-      icon
-      @click="toggleFilters"
+        icon
+        @click="toggleFilters"
     >
-      <v-icon>{{filtersVisible?'mdi-filter':'mdi-filter-outline'}}</v-icon>
+      <v-icon>{{ filtersVisible ? 'mdi-filter' : 'mdi-filter-outline' }}</v-icon>
     </v-btn>
   </app-bar>
 </template>
@@ -21,21 +21,20 @@ import Vue from "vue";
 import AppBar from "@/components/AppBar.vue";
 
 export default Vue.extend({
-  name: "VideoListBar",
-  components: { AppBar },
-  data: () => ({
-    filtersVisible: false,
-  }),
-  methods: {
-    toggleFilters() {
-      this.filtersVisible = !this.filtersVisible;
-      this.$root.$emit("VideoFilters:visible", this.filtersVisible);
+    name: "VideoListBar",
+    components: { AppBar },
+    data: () => ({
+        filtersVisible: false,
+    }),
+    methods: {
+        toggleFilters() {
+            this.filtersVisible = !this.filtersVisible;
+            this.$root.$emit("VideoFilters:visible", this.filtersVisible);
+        },
     },
-  },
-  created() {},
-  beforeDestroy() {},
+    created() {},
+    beforeDestroy() {},
 });
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

@@ -5,8 +5,8 @@
     </v-fade-transition>
 
     <v-navigation-drawer
-      app
-      v-model="drawer"
+        app
+        v-model="drawer"
     >
       <v-list-item>
         <v-list-item-content>
@@ -16,13 +16,13 @@
       <v-divider></v-divider>
       <v-list>
         <v-list-item
-          exact
-          v-for="item in [['Videos','videos']]"
-          :key="item[0]"
-          :to="{name: item[1]}"
+            exact
+            v-for="item in [['Videos','videos']]"
+            :key="item[0]"
+            :to="{name: item[1]}"
         >
           <v-list-item-content>
-            <v-list-item-title>{{item[0]}}</v-list-item-title>
+            <v-list-item-title>{{ item[0] }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -36,18 +36,18 @@
       </v-container>
     </v-main>
 
-    <Confirm />
+    <Confirm/>
 
     <v-snackbar
-      v-model="snackbar.visible"
-      :timeout="snackbar.timeout"
+        v-model="snackbar.visible"
+        :timeout="snackbar.timeout"
     >
       {{ snackbar.message }}
       <template v-slot:action="{ attrs }">
         <v-btn
-          icon
-          v-bind="attrs"
-          @click="snackbar.visible=false"
+            icon
+            v-bind="attrs"
+            @click="snackbar.visible=false"
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -61,49 +61,51 @@ import Vue from "vue";
 import Confirm from "@/components/Confirm.vue";
 
 export default Vue.extend({
-  name: "App",
-  components: { Confirm },
-  data: () => ({
-    drawer: false,
+    name: "App",
+    components: { Confirm },
+    data: () => ({
+        drawer: false,
 
-    snackbar: {
-      visible: false,
-      message: "",
-      timeout: 5000,
-    },
-  }),
-  methods: {
-    async reload() {
-      const path = this.$route.fullPath;
-      this.$router.replace("/nonexisting");
-      await this.$nextTick();
-      this.$router.replace(path);
-    },
-    snack(message: string, timeout: number = 5000) {
-      this.snackbar.message = message;
-      this.snackbar.timeout = timeout;
-      this.snackbar.visible = true;
-    },
-    error(e: any) {
-      const message = (e && e.message) || e + "";
+        snackbar: {
+            visible: false,
+            message: "",
+            timeout: 5000,
+        },
+    }),
+    methods: {
+        async reload() {
+            const path = this.$route.fullPath;
+            this.$router.replace("/nonexisting");
+            await this.$nextTick();
+            this.$router.replace(path);
+        },
+        snack(message: string, timeout: number = 5000) {
+            this.snackbar.message = message;
+            this.snackbar.timeout = timeout;
+            this.snackbar.visible = true;
+        },
+        error(e: any) {
+            const message = (e && e.message) || e + "";
 
-      if (message) {
-        this.snack(message, -1);
-      }
+            if (message) {
+                this.snack(message, -1);
+            }
+        },
+        log(...args: any[]) {
+            console.log(...args);
+        },
     },
-    log(...args: any[]) {
-      console.log(...args);
+    created() {
+        this.$root.$on("drawer", () => (this.drawer = !this.drawer));
+        this.$root.$on("reload", this.reload);
     },
-  },
-  created() {
-    this.$root.$on("drawer", () => (this.drawer = !this.drawer));
-    this.$root.$on("reload", this.reload);
-  },
 });
 </script>
 
-<style scoped lang="scss">
-</style>
+<style
+    scoped
+    lang="scss"
+></style>
 
 <style lang="scss">
 * {

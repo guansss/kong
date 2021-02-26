@@ -7,7 +7,7 @@ import {
     getCharacters,
     getTags,
     removeCharacterFromVideo,
-    removeTagFromVideo
+    removeTagFromVideo,
 } from '@/net/apis';
 import { assert } from '@/utils/misc';
 import { pull } from '@/utils/collection';
@@ -22,7 +22,7 @@ export type VideoAttribute<T extends VideoAttributeModels = VideoAttributeModels
 
 const COLOR_MAP = {
     char: 'red darken-2',
-    tag: 'pink darken-2'
+    tag: 'pink darken-2',
 };
 
 /**
@@ -91,7 +91,7 @@ export abstract class AttributeManager<T extends VideoAttributeModels = VideoAtt
 
         // filter out attributes of current video
         this.add.candidates = this.all.filter(
-            (attr) => !this.video[this.attrKey].some((usedAttr) => attr.id === usedAttr.id)
+            (attr) => !this.video[this.attrKey].some((usedAttr) => attr.id === usedAttr.id),
         );
     }
 
@@ -153,12 +153,15 @@ export abstract class AttributeManager<T extends VideoAttributeModels = VideoAtt
     }
 
     abstract getAll(): Promise<T[]>;
-    abstract _addSelected(): Promise<void>;
-    abstract _addNew(): Promise<T>;
-    abstract _remove(attr: VideoAttribute<T>): Promise<void>;
-};
 
-export class CharacterAttributeManager extends AttributeManager<CharacterModel>{
+    abstract _addSelected(): Promise<void>;
+
+    abstract _addNew(): Promise<T>;
+
+    abstract _remove(attr: VideoAttribute<T>): Promise<void>;
+}
+
+export class CharacterAttributeManager extends AttributeManager<CharacterModel> {
     label = 'Character';
     type = 'char' as const;
     attrKey = 'chars' as const;
@@ -186,7 +189,7 @@ export class CharacterAttributeManager extends AttributeManager<CharacterModel>{
     }
 }
 
-export class TagAttributeManager extends AttributeManager<TagModel>{
+export class TagAttributeManager extends AttributeManager<TagModel> {
     label = 'Tag';
     type = 'tag' as const;
     attrKey = 'tags' as const;

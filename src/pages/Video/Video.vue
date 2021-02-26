@@ -1,15 +1,14 @@
 <template>
   <div class="pb-4 w100">
     <video
-      ref="player"
-      playsinline
-      controls
-    >
-    </video>
+        ref="player"
+        playsinline
+        controls
+    ></video>
 
     <VideoInfo
-      v-if="video"
-      :video="video"
+        v-if="video"
+        :video="video"
     />
   </div>
 </template>
@@ -17,80 +16,80 @@
 <script lang="ts">
 import Vue from "vue";
 import { getVideo } from "@/net/apis";
-import { VideoModel, CharacterModel } from "@/models";
+import { CharacterModel, VideoModel } from "@/models";
 import Plyr from "plyr";
 import plyrIcons from "plyr/dist/plyr.svg";
 import VideoInfo from "./VideoInfo.vue";
 
 interface Character extends CharacterModel {
-  color: string;
+    color: string;
 }
 
 export default Vue.extend({
-  name: "Video",
-  components: { VideoInfo },
-  props: {
-    id: [String, Number],
-  },
-  data: () => ({
-    video: null as VideoModel | undefined | null,
-
-    player: undefined as Plyr | undefined,
-
-    char: {
-      allChars: [] as Character[],
-
-      edit: false,
-
-      add: {
-        dialog: false,
-        name: "",
-        alias: "",
-      },
+    name: "Video",
+    components: { VideoInfo },
+    props: {
+        id: [String, Number],
     },
-  }),
-  methods: {
-    async loadVideo() {
-      try {
-        const video = await getVideo(this.id);
+    data: () => ({
+        video: null as VideoModel | undefined | null,
 
-        this.video = video;
+        player: undefined as Plyr | undefined,
 
-        this.player!.source = {
-          type: "video",
-          title: video.title,
-          sources: [
-            {
-              src: video.url,
-              type: "video/mp4",
+        char: {
+            allChars: [] as Character[],
+
+            edit: false,
+
+            add: {
+                dialog: false,
+                name: "",
+                alias: "",
             },
-          ],
-          poster: video.thumb,
-        };
+        },
+    }),
+    methods: {
+        async loadVideo() {
+            try {
+                const video = await getVideo(this.id);
 
-        document.title = video.title;
+                this.video = video;
 
-        this.$root.$emit("Video:loaded", video);
-      } catch (e) {
-        console.warn(e);
-      }
+                this.player!.source = {
+                    type: "video",
+                    title: video.title,
+                    sources: [
+                        {
+                            src: video.url,
+                            type: "video/mp4",
+                        },
+                    ],
+                    poster: video.thumb,
+                };
+
+                document.title = video.title;
+
+                this.$root.$emit("Video:loaded", video);
+            } catch (e) {
+                console.warn(e);
+            }
+        },
+        setUpPlayer() {
+            this.player = new Plyr(this.$refs.player as HTMLElement, {
+                iconUrl: plyrIcons,
+                seekTime: 5,
+            });
+
+            (window as any).player = this.player;
+        },
     },
-    setUpPlayer() {
-      this.player = new Plyr(this.$refs.player as HTMLElement, {
-        iconUrl: plyrIcons,
-        seekTime: 5,
-      });
-
-      (window as any).player = this.player;
+    created() {
+        this.loadVideo();
     },
-  },
-  created() {
-    this.loadVideo();
-  },
-  mounted() {
-    this.setUpPlayer();
-  },
-  beforeDestroy() {},
+    mounted() {
+        this.setUpPlayer();
+    },
+    beforeDestroy() {},
 });
 </script>
 

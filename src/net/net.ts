@@ -12,7 +12,7 @@ export function file(url: string): string {
 /**
  * Converts params object to a search string. An "ID" parameter will be
  * specially prepended to the search string.
- * 
+ *
  * ```js
  * getSearchString({
  *     ID: 1,
@@ -25,7 +25,7 @@ export function file(url: string): string {
 export function getSearchString(params?: Record<string, APIPrimitive>): string {
     if (params) {
         const qualifiedParams = pickBy(params,
-            (value, key) => value !== undefined
+            (value, key) => value !== undefined,
         );
 
         // despite the type incompatibility, URLSearchParams can actually
@@ -43,7 +43,7 @@ export async function api<T>(
     method: string,
     params?: Record<string, APIPrimitive>,
     paramType?: 'search' | 'body',
-    resultType: 'json' | 'text' = 'json'
+    resultType: 'json' | 'text' = 'json',
 ): Promise<T> {
     let fullURL = new URL(url, API_SERVER).toString();
 
@@ -60,7 +60,7 @@ export async function api<T>(
     // empty properties will be stripped
     const headers = pickBy({
         'Accept': resultType === 'json' ? 'application/json' : 'text/plain',
-        'Content-Type': paramType === 'body' ? 'application/json' : ''
+        'Content-Type': paramType === 'body' ? 'application/json' : '',
     }, value => value);
 
     const res = await fetch(fullURL, {

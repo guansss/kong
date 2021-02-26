@@ -1,4 +1,4 @@
-import { CharacterModel, PersonModel,VideoModel, VideoList, VideoRecord, TagModel } from '@/models';
+import { CharacterModel, PersonModel, TagModel, VideoList, VideoModel, VideoRecord } from '@/models';
 import { api } from './net';
 
 export async function getVideos(
@@ -9,7 +9,7 @@ export async function getVideos(
         offset?: number;
         limit?: number;
         order?: string;
-    }
+    },
 ): Promise<VideoList> {
     // this is what the API actually returns
     type APIVideoList = Omit<VideoList, 'list'> & { list: VideoRecord[]; };
@@ -31,7 +31,7 @@ export async function deleteVideo(id: string | number): Promise<void> {
 
 export async function updateVideo(
     id: string | number,
-    props: Partial<Pick<VideoRecord, 'rating'>>
+    props: Partial<Pick<VideoRecord, 'rating'>>,
 ): Promise<VideoRecord> {
     return api(`videos/${id}`, 'PATCH', props);
 }

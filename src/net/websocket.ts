@@ -1,4 +1,4 @@
-import { APIPrimitive, API_SERVER, getSearchString } from './net';
+import { API_SERVER, APIPrimitive, getSearchString } from './net';
 
 const WS_SERVER = API_SERVER.replace('http', 'ws');
 
@@ -57,7 +57,7 @@ export class APIWebSocket<T extends WSAPI = WSAPI> {
         return false;
     }
 
-    async *messages() {
+    async* messages() {
         const closed = new Promise((resolve, reject) => {
             this.socket.addEventListener('close', (e: Event) => {
                 reject(e);
@@ -71,7 +71,7 @@ export class APIWebSocket<T extends WSAPI = WSAPI> {
                     this.socket.addEventListener('open', () => {
                         resolve();
                     });
-                })
+                }),
             ]);
         }
 
@@ -80,7 +80,7 @@ export class APIWebSocket<T extends WSAPI = WSAPI> {
                 closed,
                 new Promise<T['receive']>(resolve => {
                     this._onMessage = resolve;
-                })
+                }),
             ]);
 
             yield result;

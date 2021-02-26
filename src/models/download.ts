@@ -26,7 +26,7 @@ export interface DownloadWSAPI extends WSAPI {
     };
 }
 
-export interface DownloadTrackingVideo extends VideoModel { }
+export interface DownloadTrackingVideo extends VideoModel {}
 
 export class DownloadTrackingVideo {
     // null to be reactive in Vue

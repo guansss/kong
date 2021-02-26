@@ -8,4 +8,4 @@ export function assert(value: any, message?: string): asserts value {
     }
 }
 
-class AssertError extends Error { }
+class AssertError extends Error {}

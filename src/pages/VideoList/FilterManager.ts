@@ -1,4 +1,4 @@
-import { PersonModel, CharacterModel, TagModel } from '@/models';
+import { CharacterModel, PersonModel, TagModel } from '@/models';
 import { getCharacters, getPeople, getTags } from '@/net/apis';
 import { Dictionary } from 'lodash';
 
@@ -13,7 +13,7 @@ export type VideoFilter<T extends VideoFilterModels = VideoFilterModels> = T & {
 const COLOR_MAP = {
     creator: 'primary darken-3',
     char: 'green darken-3',
-    tag: 'deep-orange darken-3'
+    tag: 'deep-orange darken-3',
 };
 
 /**
@@ -83,9 +83,9 @@ export abstract class FilterManager<T extends VideoFilterModels> {
     }
 
     abstract getAll(): Promise<T[]>;
-};
+}
 
-export class CreatorFilterManager extends FilterManager<PersonModel>{
+export class CreatorFilterManager extends FilterManager<PersonModel> {
     label = 'Creator';
     type = 'creator' as const;
 
@@ -97,7 +97,7 @@ export class CreatorFilterManager extends FilterManager<PersonModel>{
     }
 }
 
-export class CharacterFilterManager extends FilterManager<CharacterModel>{
+export class CharacterFilterManager extends FilterManager<CharacterModel> {
     label = 'Character';
     type = 'char' as const;
 
@@ -109,7 +109,7 @@ export class CharacterFilterManager extends FilterManager<CharacterModel>{
     }
 }
 
-export class TagFilterManager extends FilterManager<TagModel>{
+export class TagFilterManager extends FilterManager<TagModel> {
     label = 'Tag';
     type = 'tag' as const;
 

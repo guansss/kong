@@ -36,7 +36,7 @@ export interface VideoList {
     total: number;
 }
 
-export interface VideoModel extends VideoRecord { }
+export interface VideoModel extends VideoRecord {}
 
 export class VideoModel {
     /**
@@ -67,7 +67,7 @@ export class VideoModel {
     async setRating(rating: number) {
         await updateVideo(this.id, {
             // API receives an integer in 0-10
-            rating: ~~(rating * 2)
+            rating: ~~(rating * 2),
         });
 
         this.rating = rating;

@@ -12,5 +12,5 @@ Vue.filter('date', (time: number) => {
 Vue.filter('size', (size: number) =>
     size > 1e6 ? Math.ceil(size / 1e4) / 100 + ' MB'
         : size > 1e3 ? Math.ceil(size / 10) / 100 + ' KB'
-            : size + ' B'
+        : size + ' B',
 );
