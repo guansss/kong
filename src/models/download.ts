@@ -92,14 +92,14 @@ export class DownloadTrackingVideo {
 
     finishTask(taskID: string): boolean {
         if (taskID === this.video_dl_id) {
-            this.video_dl_id = undefined;
-            this.videoTask = undefined;
+            this.video_dl_id = null;
+            this.videoTask = null;
             this.videoLoaded = true;
 
             return true;
         } else if (taskID === this.thumb_dl_id) {
-            this.thumb_dl_id = undefined;
-            this.thumbTask = undefined;
+            this.thumb_dl_id = null;
+            this.thumbTask = null;
             this.thumbLoaded = true;
 
             return true;

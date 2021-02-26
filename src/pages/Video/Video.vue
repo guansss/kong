@@ -30,7 +30,7 @@ export default Vue.extend({
   name: "Video",
   components: { VideoInfo },
   props: {
-    id: String,
+    id: [String, Number],
   },
   data: () => ({
     video: null as VideoModel | undefined | null,

@@ -1,12 +1,13 @@
+import { PersonModel } from './person';
 import { CharacterModel } from './character';
-import { addCharacterToVideo, createCharacter, deleteVideo, updateVideo } from '@/net/apis';
+import { TagModel } from './tag';
+import { deleteVideo, updateVideo } from '@/net/apis';
 
 export interface VideoRecord {
     id: number;
     type: 'i';
     src_url: string;
     title: string;
-    author_id: string;
     rating: number;
     deleted: Nullable<boolean>;
 
@@ -14,17 +15,20 @@ export interface VideoRecord {
     file: string;
     thumb: string;
 
-    video_dl_url: Nullable<string>;
-    thumb_dl_url: Nullable<string>;
+    video_dl_url: string | null;
+    thumb_dl_url: string | null;
 
     // ID of the download tasks
-    video_dl_id: Nullable<string>;
-    thumb_dl_id: Nullable<string>;
+    video_dl_id: string | null;
+    thumb_dl_id: string | null;
 
     created: DOMTimeStamp;
     uploaded: DOMTimeStamp;
 
+    creator_id: string | null;
+    creator: PersonModel | null;
     chars: CharacterModel[];
+    tags: TagModel[];
 }
 
 export interface VideoList {
@@ -55,24 +59,6 @@ export class VideoModel {
         // the rating number in database is 0-10, while Vuetify's
         // rating component requires 0-5 for displaying five stars
         this.rating /= 2;
-    }
-
-    async addCharacter(char: CharacterModel) {
-        await addCharacterToVideo(this.id, char.id);
-
-        this.chars.push(char);
-    }
-
-    async addNewCharacter(name: string, alias?: string): Promise<CharacterModel> {
-        // when alias is an empty string, an undefined should be passed
-        // so it'll be stripped from the request body
-        alias = alias || undefined;
-
-        const char = await createCharacter(name, alias, this.id);
-
-        this.chars.push(char);
-
-        return char;
     }
 
     /**

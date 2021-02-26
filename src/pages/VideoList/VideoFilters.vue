@@ -2,19 +2,20 @@
   <div>
     <template v-if="visible">
       <v-autocomplete
-        chips
-        deletable-chips
-        multiple
         clearable
         return-object
-        label="Character"
+        v-for="manager in [creator, char, tag]"
+        :key="manager.label"
+        :label="manager.label"
+        :loading="manager.loading"
+        :multiple="manager.multiple"
         class="mb-n2"
         :disabled="navigating"
-        :filter="matchFilter"
-        :items="char.chars"
+        :filter="search"
+        :items="manager.all"
         item-text="label"
         menu-props="closeOnContentClick"
-        v-model="char.selected"
+        v-model="manager.selected"
         @input="updateFilters"
       >
         <template v-slot:selection="{item,attrs}">
@@ -77,16 +78,14 @@
 <script lang="ts">
 import Vue from "vue";
 import fuzzysearch from "fuzzysearch";
-import { getCharacters } from "@/net/apis";
-import { CharacterModel } from "@/models";
 import { pull } from "@/utils/collection";
-
-type Filter<T = CharacterModel> = T & {
-  id: number;
-  type: string;
-  color: string;
-  label: string;
-};
+import { Dictionary } from "lodash";
+import {
+  CharacterFilterManager,
+  CreatorFilterManager,
+  TagFilterManager,
+  VideoFilter,
+} from "./FilterManager";
 
 export default Vue.extend({
   name: "VideoFilters",
@@ -96,67 +95,90 @@ export default Vue.extend({
     visible: false,
     navigating: false,
 
-    char: {
-      chars: [] as Filter<CharacterModel>[],
-      selected: [] as Filter<CharacterModel>[],
-    },
+    creator: new CreatorFilterManager(),
+    char: new CharacterFilterManager(),
+    tag: new TagFilterManager(),
+
+    filters: [] as VideoFilter[],
 
     order: "",
-
-    filters: [] as Filter[],
   }),
   watch: {
-    $route: "parseFilters",
+    $route: "parseQuery",
+    "creator.add.selected"() {
+      this.updateFilters();
+    },
+    "char.add.selected"() {
+      this.updateFilters();
+    },
+    "tag.add.selected"() {
+      this.updateFilters();
+    },
   },
   methods: {
     setVisible(value: boolean) {
       this.visible = value;
-    },
-    async loadChars() {
-      const chars = await getCharacters();
 
-      this.char.chars = chars.map((char) => ({
-        ...char,
-        type: "char",
-        color: "red darken-2",
-        label: char.name + (char.alias ? ` (${char.alias})` : ""),
-      }));
-    },
-    matchFilter(filter: Filter, queryText: string, itemText: string) {
-      return (
-        fuzzysearch(queryText, filter.name) ||
-        (filter.alias && fuzzysearch(queryText, filter.alias))
-      );
-    },
-    parseFilters() {
-      const query = this.$route.query;
-
-      if (query.char) {
-        this.char.selected = this.char.chars.filter((char) =>
-          query.char.includes(char.id + "")
-        );
-      } else {
-        this.char.selected = [];
+      if (value) {
+        this.initFilters();
       }
+    },
+    async initFilters() {
+      await Promise.all([
+        this.creator.init(),
+        this.char.init(),
+        this.tag.init(),
+      ]);
+    },
+    search(filter: VideoFilter, queryText: string, itemText: string): boolean {
+      return fuzzysearch(queryText, filter.label);
+    },
+    async parseQuery() {
+      const query = this.$route.query as Dictionary<string>;
 
-      this.order = (query.order as string) || "";
+      this.order = query.order || "";
+
+      await Promise.all([
+        this.creator.parseQuery(query),
+        this.char.parseQuery(query),
+        this.tag.parseQuery(query),
+      ]);
 
       this.updateFilters(false);
     },
-    removeFilter(filter: Filter) {
-      if (filter.type === "char") {
-        pull(this.char.selected, filter);
+    removeFilter(filter: VideoFilter) {
+      switch (filter.type) {
+        case "creator":
+          this.creator.selected = null;
+          break;
+
+        case "char":
+          pull(this.char.selected, filter);
+          break;
+
+        case "tag":
+          pull(this.tag.selected, filter);
+          break;
+
+        default:
+          console.warn("Unknown type: " + filter.type);
       }
 
       this.updateFilters();
     },
     removeAllFilters() {
+      this.creator.selected = null;
       this.char.selected = [];
+      this.tag.selected = [];
       this.order = "";
       this.updateFilters();
     },
     async updateFilters(navigate = true) {
-      this.filters = [...this.char.selected];
+      this.filters = [...this.char.selected, ...this.tag.selected];
+
+      if (this.creator.selected) {
+        this.filters.unshift(this.creator.selected);
+      }
 
       if (navigate) {
         this.navigate();
@@ -177,7 +199,9 @@ export default Vue.extend({
 
       await this.$router.push(
         this.$query({
-          char: this.char.selected.map((char) => char.id).join(","),
+          creator: this.creator.toQuery(),
+          char: this.char.toQuery(),
+          tag: this.tag.toQuery(),
           order: this.order,
         })
       );
@@ -188,8 +212,7 @@ export default Vue.extend({
   async created() {
     this.$root.$on("VideoFilters:visible", this.setVisible);
 
-    await this.loadChars();
-    this.parseFilters();
+    this.parseQuery();
   },
   beforeDestroy() {
     this.$root.$off("VideoFilters:visible", this.setVisible);

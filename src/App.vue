@@ -16,6 +16,7 @@
       <v-divider></v-divider>
       <v-list>
         <v-list-item
+          exact
           v-for="item in [['Videos','videos']]"
           :key="item[0]"
           :to="{name: item[1]}"

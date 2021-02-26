@@ -13,7 +13,6 @@
         <v-card
           class="item"
           :to="video.videoLoaded?{name:'video',params:{id:video.id}}:undefined"
-          target="_blank"
         >
           <v-img
             :src="video.thumbLoaded?video.thumb:undefined"
@@ -110,9 +109,11 @@
 
             <div class="mt-1 d-flex flex-wrap">
               <router-link
-                class="author link mr-auto"
-                :to="$query({author:video.author_id})"
-              >{{video.author_id}}</router-link>
+                v-if="video.creator"
+                class="creator link mr-auto"
+                :to="$query({creator:video.creator.id})"
+              >{{video.creator.name}}</router-link>
+              <v-spacer v-else></v-spacer>
               <span>{{video.created|date}}</span>
             </div>
           </v-card-subtitle>
@@ -134,6 +135,7 @@ import { getVideos } from "@/net/apis";
 import { DownloadTrackingVideo, DownloadTask, DownloadWSAPI } from "@/models";
 import { APIWebSocket } from "@/net/websocket";
 import VideoFilters from "./VideoFilters.vue";
+import { Dictionary } from "lodash";
 
 const PAGE_SIZE = 24;
 
@@ -150,29 +152,28 @@ export default Vue.extend({
     page: 1,
     pages: 0,
 
-    char: undefined as string | undefined,
-
     downloadWS: undefined as APIWebSocket<DownloadWSAPI> | undefined,
     downloadTasks: [] as DownloadTask[],
   }),
   methods: {
     async refresh() {
-      this.page = +this.$route.query.page || 1;
-      this.char = (this.$route.query.char as string) || undefined;
-
       if (this.refreshing) {
         return;
       }
 
       this.refreshing = true;
 
-      const order = (this.$route.query.order as string) || "created";
+      const query = this.$route.query as Dictionary<string>;
+
+      this.page = +query.page || 1;
 
       const result = await getVideos({
-        offset: (+this.page - 1) * PAGE_SIZE,
+        creator: query.creator || undefined,
+        char: query.char || undefined,
+        tag: query.tag || undefined,
+        order: query.order || "created",
+        offset: (this.page - 1) * PAGE_SIZE,
         limit: PAGE_SIZE,
-        order: order,
-        char: this.char,
       });
 
       this.total = result.total;
@@ -287,7 +288,7 @@ div.item {
   text-shadow: 0 0 2px black, 0 0 2px black;
 }
 
-.author {
+.creator {
   color: inherit;
 
   &:hover {

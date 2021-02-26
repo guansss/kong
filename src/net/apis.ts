@@ -1,9 +1,11 @@
-import { CharacterModel, VideoModel, VideoList, VideoRecord } from '@/models';
+import { CharacterModel, PersonModel,VideoModel, VideoList, VideoRecord, TagModel } from '@/models';
 import { api } from './net';
 
 export async function getVideos(
     params: {
-        char?: string;
+        creator?: number | string;
+        char?: number | string;
+        tag?: number | string;
         offset?: number;
         limit?: number;
         order?: string;
@@ -38,6 +40,10 @@ export async function retryDownload(id: string | number): Promise<void> {
     return api(`download/retry/${id}`, 'GET');
 }
 
+export async function getPeople(): Promise<PersonModel[]> {
+    return api('people', 'GET');
+}
+
 export async function getCharacters(): Promise<CharacterModel[]> {
     return api('chars', 'GET');
 }
@@ -52,4 +58,20 @@ export async function addCharacterToVideo(videoID: number, charID: number): Prom
 
 export async function removeCharacterFromVideo(videoID: number, charID: number): Promise<void> {
     return api(`chars/${charID}/videos/${videoID}`, 'DELETE');
+}
+
+export async function getTags(): Promise<TagModel[]> {
+    return api('tags', 'GET');
+}
+
+export async function createTag(name: string, alias: string | undefined, video_id?: number): Promise<TagModel> {
+    return api('tags', 'POST', { name, alias, video_id });
+}
+
+export async function addTagToVideo(videoID: number, tagsID: number): Promise<void> {
+    return api(`tags/${tagsID}/videos/${videoID}`, 'POST');
+}
+
+export async function removeTagFromVideo(videoID: number, tagsID: number): Promise<void> {
+    return api(`tags/${tagsID}/videos/${videoID}`, 'DELETE');
 }
