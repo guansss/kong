@@ -177,7 +177,7 @@ export default Vue.extend({
             if (manager.add.dialog) {
                 // reset fields to prevent unexpected operation
                 manager.resetAdd();
-                manager.init();
+                manager.updateCandidates();
             }
         },
         selectedChanged(manager: AttributeManager) {
