@@ -23,13 +23,17 @@
         :key="manager.label"
         class="d-flex align-center"
     >
-      <v-subheader class="pl-0">{{ manager.label }}</v-subheader>
+      <v-subheader
+          class="pl-0"
+          style="width: 72px"
+      >{{ manager.label }}
+      </v-subheader>
       <div class="d-flex flex-wrap align-center">
         <v-chip
             v-for="attr in video[manager.attrKey]"
             :key="attr.id"
             class="mr-2 my-1"
-            color="red darken-2"
+            :color="attr.color"
             :to="!edit ? { name: 'videos', query: { [manager.attrKey]: attr.id+''} } : undefined"
             :close="edit"
             :disabled="attr.removing"

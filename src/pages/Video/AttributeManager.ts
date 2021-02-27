@@ -21,8 +21,8 @@ export type VideoAttribute<T extends VideoAttributeModels = VideoAttributeModels
 };
 
 const COLOR_MAP = {
-    char: 'red darken-2',
-    tag: 'pink darken-2',
+    char: 'green darken-3',
+    tag: 'deep-orange darken-3',
 };
 
 /**
