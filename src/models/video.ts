@@ -54,8 +54,6 @@ export class VideoModel {
     constructor(video: VideoRecord) {
         Object.assign(this, video);
 
-        this.thumb = process.env.VUE_APP_STATIC_SERVER + "/test.jpg";
-
         // the rating number in database is 0-10, while Vuetify's
         // rating component requires 0-5 for displaying five stars
         this.rating /= 2;

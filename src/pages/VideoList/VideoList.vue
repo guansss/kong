@@ -2,13 +2,14 @@
   <v-container>
     <VideoFilters/>
 
-    <v-row class="mx-n5 mx-md-n1 mt-n1 mb-1">
+    <v-row class="mx-n5 mx-md-n1 mt-0 mb-1">
       <v-col
           v-for="video in videos"
           :key="video.id"
           class="pa-2"
           cols="6"
           md="4"
+          lg="3"
       >
         <v-card
             class="item"

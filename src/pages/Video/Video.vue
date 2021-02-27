@@ -1,5 +1,5 @@
 <template>
-  <div class="pb-4 w100">
+  <v-container class="pb-4">
     <video
         ref="player"
         playsinline
@@ -10,20 +10,16 @@
         v-if="video"
         :video="video"
     />
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import { getRandomVideo, getVideo } from "@/net/apis";
-import { CharacterModel, VideoModel } from "@/models";
+import { VideoModel } from "@/models";
 import Plyr from "plyr";
 import plyrIcons from "plyr/dist/plyr.svg";
 import VideoInfo from "./VideoInfo.vue";
-
-interface Character extends CharacterModel {
-    color: string;
-}
 
 export default Vue.extend({
     name: "Video",
@@ -32,18 +28,6 @@ export default Vue.extend({
         video: null as VideoModel | undefined | null,
 
         player: undefined as Plyr | undefined,
-
-        char: {
-            allChars: [] as Character[],
-
-            edit: false,
-
-            add: {
-                dialog: false,
-                name: "",
-                alias: "",
-            },
-        },
 
         videoIDOverwriting: false,
     }),
@@ -122,4 +106,10 @@ export default Vue.extend({
 
 <style lang="scss">
 @import "plyr";
+
+.plyr__control--overlaid {
+  top: unset;
+  left: 40px;
+  bottom: 32px;
+}
 </style>

@@ -1,13 +1,12 @@
 <template>
   <div class="pa-3">
-    <div class="d-flex">
-      <router-link
-          v-if="video.creator"
-          class="link text-decoration-none"
-          :to="{ name: 'videos', query: { creator: video.creator.id } }"
-      >{{ video.creator.name }}</router-link>
-      <span class="ml-auto subtitle-2 text--secondary">{{ video.created | date }}</span>
-    </div>
+    <h2>{{ video.title }}</h2>
+    <router-link
+        v-if="video.creator"
+        class="link d-inline-block my-2 text-h6 text-decoration-none"
+        :to="{ name: 'videos', query: { creator: video.creator.id } }"
+    >{{ video.creator.name }}</router-link>
+    <p class="body-2 text--secondary">{{ video.created | date }}</p>
     <v-rating
         hover
         half-increments

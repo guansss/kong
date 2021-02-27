@@ -5,10 +5,12 @@
       v-bind="$attrs"
       v-on="$listeners"
   >
-    <v-app-bar-nav-icon @click="$root.$emit('drawer')"></v-app-bar-nav-icon>
-    <v-toolbar-title v-if="title">{{ title }}</v-toolbar-title>
+    <v-container class="d-flex align-center">
+      <v-app-bar-nav-icon @click="$root.$emit('drawer')"></v-app-bar-nav-icon>
+      <v-toolbar-title v-if="title">{{ title }}</v-toolbar-title>
 
-    <slot/>
+      <slot/>
+    </v-container>
 
     <template
         v-if="$scopedSlots.extension"

@@ -29,11 +29,9 @@
     </v-navigation-drawer>
 
     <v-main>
-      <v-container class="pa-0 fill-height flex-column">
-        <v-fade-transition mode="out-in">
-          <router-view></router-view>
-        </v-fade-transition>
-      </v-container>
+      <v-fade-transition mode="out-in">
+        <router-view></router-view>
+      </v-fade-transition>
     </v-main>
 
     <Confirm/>
