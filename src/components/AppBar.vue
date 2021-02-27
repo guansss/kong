@@ -7,7 +7,7 @@
   >
     <v-container class="d-flex align-center">
       <v-app-bar-nav-icon @click="$root.$emit('drawer')"></v-app-bar-nav-icon>
-      <v-toolbar-title v-if="title">{{ title }}</v-toolbar-title>
+      <v-toolbar-title v-if="barTitle">{{ barTitle }}</v-toolbar-title>
 
       <slot/>
     </v-container>
@@ -23,11 +23,17 @@
 
 <script lang="ts">
 import Vue from "vue";
+import { startCase } from "lodash";
 
 export default Vue.extend({
     name: "AppBar",
     props: {
         title: String,
+    },
+    computed: {
+        barTitle() {
+            return this.title !== undefined ? this.title : startCase(this.$route.name as string);
+        },
     },
 });
 </script>

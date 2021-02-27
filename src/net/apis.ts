@@ -79,3 +79,11 @@ export async function addTagToVideo(videoID: number, tagsID: number): Promise<vo
 export async function removeTagFromVideo(videoID: number, tagsID: number): Promise<void> {
     return api(`tags/${tagsID}/videos/${videoID}`, 'DELETE');
 }
+
+export async function getProxy(): Promise<{ server: string }> {
+    return api('proxy', 'GET');
+}
+
+export async function setProxy(server: string): Promise<{ server: string }> {
+    return api('proxy', 'PUT', { server });
+}

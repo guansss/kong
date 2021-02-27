@@ -17,7 +17,7 @@
       <v-list>
         <v-list-item
             exact
-            v-for="item in [['Videos','videos']]"
+            v-for="item in [['Videos', 'videos'], ['Proxy','proxy']]"
             :key="item[0]"
             :to="{name: item[1]}"
         >

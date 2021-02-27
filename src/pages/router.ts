@@ -23,6 +23,14 @@ export const router = new VueRouter({
                 bar: () => import('./Video/VideoBar.vue'),
             },
         },
+        {
+            name: 'proxy',
+            path: '/proxy',
+            components: {
+                default: () => import('./Proxy/Proxy.vue'),
+                bar: () => import('@/components/AppBar.vue'),
+            },
+        },
     ],
 });
 
