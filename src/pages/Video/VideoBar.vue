@@ -17,6 +17,13 @@
     </v-btn>
     <v-btn
         icon
+        :title="diceRolled"
+        @click="random"
+    >
+      <v-icon>mdi-dice-{{ diceRolled % 6 + 1 }}</v-icon>
+    </v-btn>
+    <v-btn
+        icon
         @click="toggleEdit"
     >
       <v-icon>{{ edit ? 'mdi-cog-off' : 'mdi-cog' }}</v-icon>
@@ -35,6 +42,7 @@ export default Vue.extend({
     data: () => ({
         video: null as Nullable<VideoModel>,
         edit: false,
+        diceRolled: 0,
     }),
     methods: {
         videoLoaded(video: VideoModel) {
@@ -53,6 +61,10 @@ export default Vue.extend({
                     }
                 },
             });
+        },
+        random() {
+            this.diceRolled++;
+            this.$root.$emit('Video:random');
         },
     },
     created() {

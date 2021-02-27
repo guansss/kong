@@ -22,9 +22,6 @@ export const router = new VueRouter({
                 default: () => import('./Video/Video.vue'),
                 bar: () => import('./Video/VideoBar.vue'),
             },
-            props: {
-                default: true,
-            },
         },
     ],
 });
