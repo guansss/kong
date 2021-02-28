@@ -62,7 +62,7 @@ export default Vue.extend({
     name: "App",
     components: { Confirm },
     data: () => ({
-        drawer: false,
+        drawer: true,
 
         snackbar: {
             visible: false,

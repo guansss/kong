@@ -128,7 +128,7 @@ import {
 } from "./AttributeManager";
 
 export default Vue.extend({
-    name: "Video",
+    name: "VideoInfo",
     components: {},
     props: {
         video: {

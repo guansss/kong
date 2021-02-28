@@ -40,7 +40,7 @@ export async function updateVideo(
     return api(`videos/${id}`, 'PATCH', props);
 }
 
-export async function retryDownload(id: string | number): Promise<void> {
+export async function retryDownload(id: string): Promise<void> {
     return api(`download/retry/${id}`, 'GET');
 }
 

@@ -6,9 +6,17 @@ const SPEED_FILTER_STRENGTH = 5;
 
 export interface DownloadTask {
     id: string;
+    state: DownloadTaskState;
     loaded: number;
     size: number;
     error?: string;
+}
+
+export const enum DownloadTaskState {
+    INITIAL = 0,
+    LOADING = 1,
+    SUCCEEDED = 2,
+    FAILED = 3,
 }
 
 export interface DownloadWSAPI extends WSAPI {
@@ -26,21 +34,69 @@ export interface DownloadWSAPI extends WSAPI {
     };
 }
 
-export interface DownloadTrackingVideo extends VideoModel {}
+export interface DownloadTaskModel extends DownloadTask {}
 
-export class DownloadTrackingVideo {
-    // null to be reactive in Vue
-    videoTask: Nullable<DownloadTask> = null;
-    thumbTask: Nullable<DownloadTask> = null;
-
-    videoLoaded: boolean;
-    thumbLoaded: boolean;
+export class DownloadTaskModel {
+    progress = '0%';
 
     // bytes per second
     speed = 0;
 
-    // last time the speed is updated
-    speedUpdateTime: DOMTimeStamp = 0;
+    // last time the speed was updated
+    speedUpdateTime = Date.now();
+
+    constructor(task: DownloadTask) {
+        Object.assign(this, task);
+
+        // init the progress
+        this.updateProgress(this.loaded);
+    }
+
+    update(task: DownloadTask) {
+        const lastLoaded = this.loaded;
+
+        Object.assign(this, task);
+
+        if (!this.error) {
+            this.updateProgress(lastLoaded);
+        }
+    }
+
+    updateProgress(lastLoaded: number) {
+        const now = Date.now();
+
+        // avoid zero time
+        const deltaTime = (now - this.speedUpdateTime) || 1;
+
+        const instantaneousSpeed = (this.loaded - lastLoaded) / deltaTime * 1000;
+
+        this.speed += (instantaneousSpeed - this.speed) / SPEED_FILTER_STRENGTH;
+        this.speedUpdateTime = now;
+        this.progress = ~~(this.loaded / this.size * 100) + '%';
+    }
+
+    async retry() {
+        if (this.state !== DownloadTaskState.FAILED) {
+            throw new Error('Only a failed task can be retried.');
+        }
+
+        // remember to reset these values or the speed will be negative for the first few seconds
+        this.speedUpdateTime = Date.now();
+        this.loaded = 0;
+
+        return retryDownload(this.id);
+    }
+}
+
+export interface DownloadTrackingVideo extends VideoModel {}
+
+export class DownloadTrackingVideo {
+    // null to be reactive in Vue
+    videoTask: Nullable<DownloadTaskModel> = null;
+    thumbTask: Nullable<DownloadTaskModel> = null;
+
+    videoLoaded: boolean;
+    thumbLoaded: boolean;
 
     constructor(video: VideoModel) {
         Object.assign(this, video);
@@ -61,32 +117,31 @@ export class DownloadTrackingVideo {
             }
         }
 
-        // only care about the video task's error
         if (videoTask) {
-            if (!videoTask.error) {
-                this.updateProgress(videoTask.loaded, this.videoTask?.loaded || 0);
+            // only care about the error of video task
+            this.error = videoTask.error;
+
+            if (this.videoTask) {
+                this.videoTask.update(videoTask);
+            } else {
+                this.videoTask = new DownloadTaskModel(videoTask);
+            }
+        } else {
+            if (!this.videoTask && !this.videoLoaded) {
+                this.error = "Not downloaded";
             }
 
-            this.error = videoTask.error;
+            this.videoTask = null;
         }
 
-        if (!videoTask && !this.videoTask && !this.videoLoaded) {
-            this.error = "Not downloaded";
-        }
-
-        if (videoTask && this.videoTask) {
-            // use property assigning so Vue won't have to recreate
-            // the reactive setters/getters for the new task object.
-            // this should improve the performance
-            Object.assign(this.videoTask, videoTask);
+        if (thumbTask) {
+            if (this.thumbTask) {
+                this.thumbTask.update(thumbTask);
+            } else {
+                this.thumbTask = new DownloadTaskModel(thumbTask);
+            }
         } else {
-            this.videoTask = videoTask;
-        }
-
-        if (thumbTask && this.thumbTask) {
-            Object.assign(this.thumbTask, thumbTask);
-        } else {
-            this.thumbTask = thumbTask;
+            this.thumbTask = null;
         }
     }
 
@@ -112,26 +167,24 @@ export class DownloadTrackingVideo {
         this.error = undefined;
 
         try {
-            await retryDownload(this.videoTask!.id);
-        } catch (e) {
-            console.warn(e);
-            this.error = e;
-        }
-    }
+            let retried = false;
 
-    updateProgress(loaded: number, lastLoaded: number) {
-        if (this.videoTask) {
-            const now = Date.now();
-
-            if (!this.speedUpdateTime) {
-                this.speedUpdateTime = now;
-                return;
+            if (this.videoTask?.state === DownloadTaskState.FAILED) {
+                retried = true;
+                await this.videoTask.retry();
             }
 
-            const instantaneousSpeed = (loaded - lastLoaded) / (now - this.speedUpdateTime) * 1000;
+            if (this.thumbTask?.state === DownloadTaskState.FAILED) {
+                retried = true;
+                await this.thumbTask.retry();
+            }
 
-            this.speed += (instantaneousSpeed - this.speed) / SPEED_FILTER_STRENGTH;
-            this.speedUpdateTime = now;
+            if (!retried) {
+                throw new TypeError('Could not retry any task.');
+            }
+        } catch (e) {
+            console.warn(e, this.videoTask, this.thumbTask);
+            this.error = e;
         }
     }
 }

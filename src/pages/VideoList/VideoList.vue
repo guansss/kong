@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="pt-0">
     <VideoFilters/>
 
     <v-row class="mx-n5 mx-md-n1 mt-0 mb-1">
@@ -13,7 +13,7 @@
       >
         <v-card
             class="item"
-            :to="video.videoLoaded ? { name: 'video', params: { id: video.id } } : undefined"
+            :to="{ name: 'video', params: { id: video.id } }"
         >
           <v-img
               :src="video.thumbLoaded ? video.thumb : undefined"
@@ -24,10 +24,10 @@
                 :style="video.error&&'background:rgba(0,0,0,.5)'"
             >
               <template v-if="video.videoTask">
-                <div class="mb-1 text-h4">{{ ~~(video.videoTask.loaded / video.videoTask.size * 100) }}%</div>
+                <div class="mb-1 text-h4">{{ video.videoTask.progress }}</div>
                 <div class="subtitle-1">
                   {{ video.videoTask.loaded|size }} / {{ video.videoTask.size|size }}<br>
-                  ({{ video.speed|size }}/s)
+                  ({{ video.videoTask.speed|size }}/s)
                 </div>
               </template>
               <div
@@ -35,12 +35,13 @@
                   class="subtitle-1"
               >{{ video.error }}
               </div>
+              <!-- Use `@click.stop.prevent` to prevent triggering the underlying v-card, which will be rendered as an <a> tag -->
               <v-btn
                   icon
                   absolute
                   v-if="video.error&&video.videoTask"
                   style="top:0;left:0"
-                  @click="retry(video)"
+                  @click.stop.prevent="video.retryDownload()"
               >
                 <v-icon>mdi-reload</v-icon>
               </v-btn>
@@ -62,6 +63,7 @@
                   bottom
                   left
               >
+                <!-- Use `@click.stop.prevent` for the same reason as above -->
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
                       icon
@@ -135,10 +137,10 @@
 <script lang="ts">
 import Vue from "vue";
 import { getVideos } from "@/net/apis";
-import { DownloadTask, DownloadTrackingVideo, DownloadWSAPI } from "@/models";
-import { APIWebSocket } from "@/net/websocket";
+import { DownloadTrackingVideo } from "@/models";
 import VideoFilters from "./VideoFilters.vue";
 import { Dictionary } from "lodash";
+import { DownloadTracker } from '@/tools/DownloadTracker';
 
 const PAGE_SIZE = 24;
 
@@ -155,8 +157,7 @@ export default Vue.extend({
         page: 1,
         pages: 0,
 
-        downloadWS: undefined as APIWebSocket<DownloadWSAPI> | undefined,
-        downloadTasks: [] as DownloadTask[],
+        downloadTracker: new DownloadTracker(),
     }),
     methods: {
         async refresh() {
@@ -183,50 +184,15 @@ export default Vue.extend({
             this.pages = Math.ceil(this.total / PAGE_SIZE);
 
             this.videos = result.list.map(
-                (video) => new DownloadTrackingVideo(video),
+                video => new DownloadTrackingVideo(video),
             );
+
+            this.downloadTracker.videos = this.videos;
 
             this.refreshing = false;
         },
-        async trackTasks() {
-            try {
-                const ws = await APIWebSocket.create<DownloadWSAPI>("download/", {
-                    interval: 500,
-                });
-
-                this.downloadWS = ws;
-
-                for await (const message of ws.messages()) {
-                    switch (message.type) {
-                        case "added":
-                            this.refresh();
-                            break;
-
-                        case "loaded":
-                            this.finishTask(message.data);
-                            break;
-
-                        case "tasks":
-                            this.videos.forEach((video) => video.updateTask(message.data));
-                    }
-                }
-            } catch (e) {
-                // warn if the error is not caused by manually closing the WebSocket
-                if (this.downloadWS?.alive) {
-                    console.warn(e);
-                }
-            }
-        },
-        finishTask(id: string) {
-            const matched = this.videos.some((video) => video.finishTask(id));
-
-            // a rare case that the task doesn't belong to any of the current videos
-            if (!matched) {
-                this.refresh();
-            }
-        },
-        retry(video: DownloadTrackingVideo) {
-            video.retryDownload();
+        async trackDownload() {
+            this.downloadTracker.on('added', this.refresh);
         },
         async remove(video: DownloadTrackingVideo) {
             this.$root.$emit("Confirm:show", {
@@ -242,14 +208,14 @@ export default Vue.extend({
     },
     created() {
         this.refresh();
-        this.trackTasks();
+        this.trackDownload();
     },
     beforeRouteUpdate(to, from, next) {
         next();
         this.refresh();
     },
     beforeDestroy() {
-        this.downloadWS?.close();
+        this.downloadTracker.destroy();
     },
 });
 </script>
