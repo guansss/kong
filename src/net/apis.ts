@@ -25,8 +25,8 @@ export async function getVideo(id: string | number): Promise<VideoModel> {
     return api<VideoRecord>(`videos/${id}`, 'GET').then(VideoModel.create);
 }
 
-export async function getRandomVideo(current_id?: string | number, rating?: string | number): Promise<VideoModel> {
-    return api<VideoRecord>(`videos/random`, 'GET', { current_id, rating }).then(VideoModel.create);
+export async function getRandomVideo(exclude?: string | number, rating?: string | number): Promise<VideoModel> {
+    return api<VideoRecord>(`videos/random`, 'GET', { exclude, rating }).then(VideoModel.create);
 }
 
 export async function deleteVideo(id: string | number): Promise<void> {
