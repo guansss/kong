@@ -1,4 +1,4 @@
-import { retryDownload } from '@/net/apis';
+import { removeDownload, startDownload, stopDownload } from '@/net/apis';
 import { WSAPI } from '@/net/websocket';
 import { VideoModel } from './video';
 
@@ -6,17 +6,20 @@ const SPEED_FILTER_STRENGTH = 5;
 
 export interface DownloadTask {
     id: string;
+    name: string;
     state: DownloadTaskState;
+    type: 'video' | 'image';
     loaded: number;
     size: number;
     error?: string;
 }
 
-export const enum DownloadTaskState {
-    INITIAL = 0,
-    LOADING = 1,
-    SUCCEEDED = 2,
-    FAILED = 3,
+export enum DownloadTaskState {
+    INITIAL,
+    LOADING,
+    SUCCEEDED,
+    FAILED,
+    STOPPED,
 }
 
 export interface DownloadWSAPI extends WSAPI {
@@ -45,6 +48,10 @@ export class DownloadTaskModel {
     // last time the speed was updated
     speedUpdateTime = Date.now();
 
+    get startable() {
+        return this.state == DownloadTaskState.STOPPED || this.state === DownloadTaskState.FAILED;
+    }
+
     constructor(task: DownloadTask) {
         Object.assign(this, task);
 
@@ -54,15 +61,16 @@ export class DownloadTaskModel {
 
     update(task: DownloadTask) {
         const lastLoaded = this.loaded;
+        const shouldUpdateProgress = this.state === DownloadTaskState.LOADING && !this.error;
 
         Object.assign(this, task);
 
-        if (!this.error) {
+        if (shouldUpdateProgress) {
             this.updateProgress(lastLoaded);
         }
     }
 
-    updateProgress(lastLoaded: number) {
+    private updateProgress(lastLoaded: number) {
         const now = Date.now();
 
         // avoid zero time
@@ -75,16 +83,23 @@ export class DownloadTaskModel {
         this.progress = ~~(this.loaded / this.size * 100) + '%';
     }
 
-    async retry() {
-        if (this.state !== DownloadTaskState.FAILED) {
-            throw new Error('Only a failed task can be retried.');
+    async start() {
+        if (!this.startable) {
+            throw new Error('Invalid state: ' + DownloadTaskState[this.state]);
         }
 
-        // remember to reset these values or the speed will be negative for the first few seconds
+        // remember to reset the status or the computed speed will get crazy for the first few seconds
         this.speedUpdateTime = Date.now();
-        this.loaded = 0;
 
-        return retryDownload(this.id);
+        return startDownload(this.id);
+    }
+
+    async stop() {
+        return stopDownload(this.id);
+    }
+
+    async remove() {
+        return removeDownload(this.id);
     }
 }
 
@@ -105,9 +120,9 @@ export class DownloadTrackingVideo {
         this.thumbLoaded = !video.thumb_dl_id;
     }
 
-    updateTask(tasks: DownloadTask[]) {
-        let videoTask: DownloadTask | undefined;
-        let thumbTask: DownloadTask | undefined;
+    updateTask(tasks: DownloadTaskModel[]) {
+        let videoTask: DownloadTaskModel | undefined;
+        let thumbTask: DownloadTaskModel | undefined;
 
         for (const task of tasks) {
             if (task.id === this.video_dl_id) {
@@ -120,29 +135,12 @@ export class DownloadTrackingVideo {
         if (videoTask) {
             // only care about the error of video task
             this.error = videoTask.error;
-
-            if (this.videoTask) {
-                this.videoTask.update(videoTask);
-            } else {
-                this.videoTask = new DownloadTaskModel(videoTask);
-            }
-        } else {
-            if (!this.videoTask && !this.videoLoaded) {
-                this.error = "Not downloaded";
-            }
-
-            this.videoTask = null;
+        } else if (!this.videoTask && !this.videoLoaded) {
+            this.error = "Not downloaded";
         }
 
-        if (thumbTask) {
-            if (this.thumbTask) {
-                this.thumbTask.update(thumbTask);
-            } else {
-                this.thumbTask = new DownloadTaskModel(thumbTask);
-            }
-        } else {
-            this.thumbTask = null;
-        }
+        this.videoTask = videoTask;
+        this.thumbTask = thumbTask;
     }
 
     finishTask(taskID: string): boolean {
@@ -169,14 +167,14 @@ export class DownloadTrackingVideo {
         try {
             let retried = false;
 
-            if (this.videoTask?.state === DownloadTaskState.FAILED) {
+            if (this.videoTask?.startable) {
                 retried = true;
-                await this.videoTask.retry();
+                await this.videoTask.start();
             }
 
-            if (this.thumbTask?.state === DownloadTaskState.FAILED) {
+            if (this.thumbTask?.startable) {
                 retried = true;
-                await this.thumbTask.retry();
+                await this.thumbTask.start();
             }
 
             if (!retried) {

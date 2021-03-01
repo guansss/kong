@@ -1,11 +1,14 @@
 import EventEmitter from '@/utils/eventemitter';
 import { APIWebSocket } from '@/net/websocket';
-import { DownloadTrackingVideo, DownloadWSAPI } from '@/models';
+import { DownloadTask, DownloadTaskModel, DownloadTrackingVideo, DownloadWSAPI } from '@/models';
+import { pull } from '@/utils/collection';
 
-export class DownloadTracker extends EventEmitter {
+export class DownloadManager extends EventEmitter {
     socket?: APIWebSocket<DownloadWSAPI>;
 
     videos: DownloadTrackingVideo[] = [];
+
+    tasks: DownloadTaskModel[] = [];
 
     constructor() {
         super();
@@ -25,12 +28,16 @@ export class DownloadTracker extends EventEmitter {
         } catch (e) {
             // warn if the error is not caused by manually closing the WebSocket
             if (this.socket?.alive) {
-                console.warn('WebSocket closed unexpectedly.');
+                if (e instanceof ErrorEvent) {
+                    console.warn('WebSocket closed unexpectedly.');
+                } else {
+                    console.warn(e);
+                }
             }
         }
     }
 
-    processMessage(message: DownloadWSAPI['receive']) {
+    private processMessage(message: DownloadWSAPI['receive']) {
         switch (message.type) {
             case "added":
                 this.emit('added', message.data);
@@ -43,11 +50,37 @@ export class DownloadTracker extends EventEmitter {
                 break;
 
             case "tasks":
-                this.videos.forEach(video => video.updateTask(message.data));
+                this.updateTasks(message.data);
+
+                this.videos.forEach(video => video.updateTask(this.tasks));
 
                 this.emit('tasks', message.data);
                 break;
         }
+    }
+
+    private updateTasks(tasks: DownloadTask[]) {
+        for (const task of tasks) {
+            const taskModel = this.tasks.find(t => t.id === task.id);
+
+            if (taskModel) {
+                taskModel.update(task);
+            } else {
+                this.tasks.push(new DownloadTaskModel(task));
+            }
+        }
+    }
+
+    async remove(id: string) {
+        const task = this.tasks.find(task => task.id === id);
+
+        if (!task) {
+            throw new TypeError('Task not found.');
+        }
+
+        await task.remove();
+
+        pull(this.tasks, task);
     }
 
     destroy() {

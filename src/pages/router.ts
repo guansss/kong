@@ -31,6 +31,14 @@ export const router = new VueRouter({
                 bar: () => import('@/components/AppBar.vue'),
             },
         },
+        {
+            name: 'download',
+            path: '/download',
+            components: {
+                default: () => import('./Download/Download.vue'),
+                bar: () => import('@/components/AppBar.vue'),
+            },
+        },
     ],
 });
 

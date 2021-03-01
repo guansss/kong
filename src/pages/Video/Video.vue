@@ -51,7 +51,7 @@ import { DownloadTrackingVideo, VideoModel } from "@/models";
 import Plyr from "plyr";
 import plyrIcons from "plyr/dist/plyr.svg";
 import VideoInfo from "./VideoInfo.vue";
-import { DownloadTracker } from '@/tools/DownloadTracker';
+import { DownloadManager } from '@/tools/DownloadManager';
 
 export default Vue.extend({
     name: "Video",
@@ -63,7 +63,7 @@ export default Vue.extend({
 
         videoIDOverwriting: false,
 
-        downloadTracker: undefined as DownloadTracker | undefined,
+        downloadManager: undefined as DownloadManager | undefined,
     }),
     watch: {
         'video.thumbLoaded': {
@@ -104,12 +104,12 @@ export default Vue.extend({
             this.video = new DownloadTrackingVideo(video);
 
             // track download if the video has not been loaded
-            if (!this.downloadTracker && !this.video.videoLoaded) {
-                this.downloadTracker = new DownloadTracker();
+            if (!this.downloadManager && !this.video.videoLoaded) {
+                this.downloadManager = new DownloadManager();
             }
 
-            if (this.downloadTracker) {
-                this.downloadTracker.videos = [this.video];
+            if (this.downloadManager) {
+                this.downloadManager.videos = [this.video];
             }
 
             document.title = video.title;
@@ -158,7 +158,7 @@ export default Vue.extend({
     beforeDestroy() {
         this.$root.$off("Video:random", this.random);
 
-        this.downloadTracker?.destroy();
+        this.downloadManager?.destroy();
     },
 });
 </script>

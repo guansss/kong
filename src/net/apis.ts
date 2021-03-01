@@ -40,10 +40,6 @@ export async function updateVideo(
     return api(`videos/${id}`, 'PATCH', props);
 }
 
-export async function retryDownload(id: string): Promise<void> {
-    return api(`download/retry/${id}`, 'GET');
-}
-
 export async function getPeople(): Promise<PersonModel[]> {
     return api('people', 'GET');
 }
@@ -78,6 +74,18 @@ export async function addTagToVideo(videoID: number, tagsID: number): Promise<vo
 
 export async function removeTagFromVideo(videoID: number, tagsID: number): Promise<void> {
     return api(`tags/${tagsID}/videos/${videoID}`, 'DELETE');
+}
+
+export async function startDownload(id: string): Promise<void> {
+    return api(`download/${id}/start`, 'GET');
+}
+
+export async function stopDownload(id: string): Promise<void> {
+    return api(`download/${id}/stop`, 'GET');
+}
+
+export async function removeDownload(id: string): Promise<void> {
+    return api(`download/${id}`, 'DELETE');
 }
 
 export async function getProxy(): Promise<{ server: string }> {

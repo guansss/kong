@@ -140,7 +140,7 @@ import { getVideos } from "@/net/apis";
 import { DownloadTrackingVideo } from "@/models";
 import VideoFilters from "./VideoFilters.vue";
 import { Dictionary } from "lodash";
-import { DownloadTracker } from '@/tools/DownloadTracker';
+import { DownloadManager } from '@/tools/DownloadManager';
 
 const PAGE_SIZE = 24;
 
@@ -157,7 +157,7 @@ export default Vue.extend({
         page: 1,
         pages: 0,
 
-        downloadTracker: new DownloadTracker(),
+        downloadManager: new DownloadManager(),
     }),
     methods: {
         async refresh() {
@@ -187,12 +187,12 @@ export default Vue.extend({
                 video => new DownloadTrackingVideo(video),
             );
 
-            this.downloadTracker.videos = this.videos;
+            this.downloadManager.videos = this.videos;
 
             this.refreshing = false;
         },
         async trackDownload() {
-            this.downloadTracker.on('added', this.refresh);
+            this.downloadManager.on('added', this.refresh);
         },
         async remove(video: DownloadTrackingVideo) {
             this.$root.$emit("Confirm:show", {
@@ -215,7 +215,7 @@ export default Vue.extend({
         this.refresh();
     },
     beforeDestroy() {
-        this.downloadTracker.destroy();
+        this.downloadManager.destroy();
     },
 });
 </script>
