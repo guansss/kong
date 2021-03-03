@@ -5,7 +5,10 @@
       v-bind="$attrs"
       v-on="$listeners"
   >
-    <v-container class="d-flex align-center">
+    <v-container
+        :fluid="fluid"
+        class="d-flex align-center"
+    >
       <v-app-bar-nav-icon @click="$root.$emit('drawer')"></v-app-bar-nav-icon>
       <v-toolbar-title v-if="barTitle">{{ barTitle }}</v-toolbar-title>
 
@@ -29,6 +32,7 @@ export default Vue.extend({
     name: "AppBar",
     props: {
         title: String,
+        fluid: Boolean,
     },
     computed: {
         barTitle() {

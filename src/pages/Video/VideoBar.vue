@@ -11,19 +11,28 @@
     </v-btn>
     <v-btn
         icon
+        title="Reload"
         @click="$root.$emit('reload')"
     >
       <v-icon>mdi-reload</v-icon>
     </v-btn>
     <v-btn
         icon
-        :title="diceRolled"
+        title="Control Room"
+        @click="addToControlRoom"
+    >
+      <v-icon>mdi-view-grid{{ addedToControlRoom ? '' : '-plus' }}</v-icon>
+    </v-btn>
+    <v-btn
+        icon
+        :title="'Random: ' + diceRolled"
         @click="random"
     >
       <v-icon>mdi-dice-{{ diceRolled % 6 + 1 }}</v-icon>
     </v-btn>
     <v-btn
         icon
+        title="Edit"
         @click="toggleEdit"
     >
       <v-icon>{{ edit ? 'mdi-cog-off' : 'mdi-cog' }}</v-icon>
@@ -35,6 +44,8 @@
 import Vue from "vue";
 import AppBar from "@/components/AppBar.vue";
 import { VideoModel } from "@/models";
+import { ControlRoomMessageEvent } from '@/pages/ControlRoom/ControlRoom.vue';
+import { delay } from '@/utils/misc';
 
 export default Vue.extend({
     name: "VideoBar",
@@ -43,9 +54,14 @@ export default Vue.extend({
         video: null as Nullable<VideoModel>,
         edit: false,
         diceRolled: 0,
+        addedToControlRoom: false,
     }),
     methods: {
         videoLoaded(video: VideoModel) {
+            if (video.id !== this.video?.id) {
+                this.addedToControlRoom = false;
+            }
+
             this.video = video;
         },
         toggleEdit() {
@@ -65,6 +81,40 @@ export default Vue.extend({
         random() {
             this.diceRolled++;
             this.$root.$emit('Video:random');
+        },
+        async addToControlRoom() {
+            if (this.video && !this.addedToControlRoom) {
+                try {
+                    this.addedToControlRoom = await Promise.race([
+                        // set a timeout for the request
+                        delay(100, false),
+                        new Promise<true>((resolve, reject) => {
+                            const broadcast = new BroadcastChannel('control-room');
+
+                            broadcast.onmessage = (event: ControlRoomMessageEvent) => {
+                                if (event.data.type === 'added') {
+                                    resolve(true);
+                                } else if (event.data.type === 'error') {
+                                    reject(event.data.data);
+                                }
+                            };
+
+                            const message: ControlRoomMessageEvent['data'] = {
+                                type: 'add',
+                                data: this.video!.id,
+                            };
+                            broadcast.postMessage(message);
+                        }),
+                    ]);
+
+                    if (!this.addedToControlRoom) {
+                        // not receiving any response means that the control room has not been opened
+                        await this.$router.push({ name: 'control-room', query: { tr: this.video.id + '' } });
+                    }
+                } catch (e) {
+                    console.warn(e);
+                }
+            }
         },
     },
     created() {

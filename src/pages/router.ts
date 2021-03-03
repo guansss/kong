@@ -24,6 +24,14 @@ export const router = new VueRouter({
             },
         },
         {
+            name: 'control-room',
+            path: '/control-room',
+            components: {
+                default: () => import('./ControlRoom/ControlRoom.vue'),
+                bar: () => import('./ControlRoom/ControlRoomBar.vue'),
+            },
+        },
+        {
             name: 'proxy',
             path: '/proxy',
             components: {

@@ -121,8 +121,6 @@ export default Vue.extend({
                 iconUrl: plyrIcons,
                 seekTime: 5,
             });
-
-            (window as any).player = this.player;
         },
         async random() {
             try {
@@ -158,21 +156,16 @@ export default Vue.extend({
     beforeDestroy() {
         this.$root.$off("Video:random", this.random);
 
+        this.player?.destroy();
         this.downloadManager?.destroy();
     },
 });
 </script>
 
-<style lang="scss">
-@import "plyr";
-
-// the play button
-.plyr__control--overlaid {
-  top: unset;
-  left: 40px;
-  bottom: 32px;
-}
-
+<style
+    scoped
+    lang="scss"
+>
 .video {
   position: relative;
 }

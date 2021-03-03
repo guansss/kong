@@ -17,7 +17,7 @@
       <v-list>
         <v-list-item
             exact
-            v-for="item in [['Videos', 'videos'], ['Download','download'], ['Proxy','proxy']]"
+            v-for="item in [['Videos', 'videos'], ['Download','download'], ['Control Room','control-room'], ['Proxy','proxy']]"
             :key="item[0]"
             :to="{name: item[1]}"
         >
@@ -94,7 +94,10 @@ export default Vue.extend({
         },
     },
     created() {
-        this.$root.$on("drawer", () => (this.drawer = !this.drawer));
+        this.$root.$on("drawer", (open?: boolean) => {
+            // open or toggle
+            this.drawer = open !== undefined ? open : !this.drawer;
+        });
         this.$root.$on("reload", this.reload);
     },
 });
@@ -106,6 +109,8 @@ export default Vue.extend({
 ></style>
 
 <style lang="scss">
+@import "plyr";
+
 * {
   margin: 0;
   padding: 0;
@@ -126,6 +131,13 @@ a.link {
   &:hover {
     filter: brightness(150%);
   }
+}
+
+// the play button
+.plyr__control--overlaid {
+  top: unset;
+  left: 40px;
+  bottom: 32px;
 }
 
 // https://github.com/vuetifyjs/vuetify/issues/7283#issuecomment-572276385
