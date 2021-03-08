@@ -17,7 +17,7 @@
       <v-list>
         <v-list-item
             exact
-            v-for="item in [['Videos', 'videos'], ['Download','download'], ['Control Room','control-room'], ['Proxy','proxy']]"
+            v-for="item in [['Videos', 'videos'], ['Control Room','control-room'], ['Proxy','proxy']]"
             :key="item[0]"
             :to="{name: item[1]}"
         >
@@ -34,7 +34,7 @@
       </v-fade-transition>
     </v-main>
 
-    <Confirm/>
+    <Confirm />
 
     <v-snackbar
         v-model="snackbar.visible"
@@ -55,25 +55,25 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import Confirm from "@/components/Confirm.vue";
+import Confirm from '@/components/Confirm.vue';
+import Vue from 'vue';
 
 export default Vue.extend({
-    name: "App",
+    name: 'App',
     components: { Confirm },
     data: () => ({
         drawer: true,
 
         snackbar: {
             visible: false,
-            message: "",
+            message: '',
             timeout: 5000,
         },
     }),
     methods: {
         async reload() {
             const path = this.$route.fullPath;
-            this.$router.replace("/nonexisting");
+            this.$router.replace('/nonexisting');
             await this.$nextTick();
             this.$router.replace(path);
         },
@@ -83,7 +83,7 @@ export default Vue.extend({
             this.snackbar.visible = true;
         },
         error(e: any) {
-            const message = (e && e.message) || e + "";
+            const message = (e && e.message) || e + '';
 
             if (message) {
                 this.snack(message, -1);
@@ -94,11 +94,11 @@ export default Vue.extend({
         },
     },
     created() {
-        this.$root.$on("drawer", (open?: boolean) => {
+        this.$root.$on('drawer', (open?: boolean) => {
             // open or toggle
             this.drawer = open !== undefined ? open : !this.drawer;
         });
-        this.$root.$on("reload", this.reload);
+        this.$root.$on('reload', this.reload);
     },
 });
 </script>

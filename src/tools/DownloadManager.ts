@@ -1,14 +1,13 @@
-import EventEmitter from '@/utils/eventemitter';
+import { Download, DownloadModel, DownloadTrackingVideo, DownloadWSAPI } from '@/models';
 import { APIWebSocket } from '@/net/websocket';
-import { DownloadTask, DownloadTaskModel, DownloadTrackingVideo, DownloadWSAPI } from '@/models';
-import { pull } from '@/utils/collection';
+import EventEmitter from '@/utils/eventemitter';
 
 export class DownloadManager extends EventEmitter {
     socket?: APIWebSocket<DownloadWSAPI>;
 
     videos: DownloadTrackingVideo[] = [];
 
-    tasks: DownloadTaskModel[] = [];
+    downloads: DownloadModel[] = [];
 
     constructor() {
         super();
@@ -18,7 +17,7 @@ export class DownloadManager extends EventEmitter {
 
     private async setup() {
         try {
-            this.socket = await APIWebSocket.create("download/", {
+            this.socket = await APIWebSocket.create('download/', {
                 interval: 500,
             });
 
@@ -39,48 +38,40 @@ export class DownloadManager extends EventEmitter {
 
     private processMessage(message: DownloadWSAPI['receive']) {
         switch (message.type) {
-            case "added":
+            case 'added':
                 this.emit('added', message.data);
                 break;
 
-            case "loaded":
-                this.videos.forEach(video => video.finishTask(message.data));
+            case 'loaded':
+                for (const id of message.data) {
+                    for (const video of this.videos) {
+                        video.finishDownload(id);
+                    }
+                }
 
                 this.emit('loaded', message.data);
                 break;
 
-            case "tasks":
-                this.updateTasks(message.data);
+            case 'status':
+                this.updateDownloads(message.data);
 
-                this.videos.forEach(video => video.updateTask(this.tasks));
+                this.videos.forEach(video => video.updateDownload(this.downloads));
 
-                this.emit('tasks', message.data);
+                this.emit('status', message.data);
                 break;
         }
     }
 
-    private updateTasks(tasks: DownloadTask[]) {
-        for (const task of tasks) {
-            const taskModel = this.tasks.find(t => t.id === task.id);
+    private updateDownloads(downloads: Download[]) {
+        for (const download of downloads) {
+            const downloadModel = this.downloads.find(d => d.id === download.id);
 
-            if (taskModel) {
-                taskModel.update(task);
+            if (downloadModel) {
+                downloadModel.update(download);
             } else {
-                this.tasks.push(new DownloadTaskModel(task));
+                this.downloads.push(new DownloadModel(download));
             }
         }
-    }
-
-    async remove(id: string) {
-        const task = this.tasks.find(task => task.id === id);
-
-        if (!task) {
-            throw new TypeError('Task not found.');
-        }
-
-        await task.remove();
-
-        pull(this.tasks, task);
     }
 
     destroy() {

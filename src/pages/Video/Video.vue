@@ -8,15 +8,15 @@
       ></video>
 
       <div
-          v-if="!video || (video.error || video.videoTask)"
+          v-if="!video || !video.videoLoaded"
           class="cover text-h5"
       >
         <template v-if="video">
-          <template v-if="video.videoTask">
-            <div class="mb-1 text-h3">{{ video.videoTask.progress }}</div>
+          <template v-if="video.download">
+            <div class="mb-1 text-h3">{{ video.download.progress }}</div>
             <div>
-              {{ video.videoTask.loaded|size }} / {{ video.videoTask.size|size }}<br>
-              ({{ video.videoTask.speed|size }}/s)
+              {{ video.download.completedLength|size }} / {{ video.totalLength.size|size }}<br>
+              ({{ video.download.downloadSpeed|size }}/s)
             </div>
           </template>
 
@@ -24,15 +24,6 @@
               v-if="video.error"
           >{{ video.error }}
           </div>
-          <v-btn
-              icon
-              x-large
-              class="mt-6"
-              v-if="video.error&&video.videoTask"
-              @click.stop.prevent="video.retryDownload()"
-          >
-            <v-icon>mdi-reload</v-icon>
-          </v-btn>
         </template>
       </div>
     </div>
@@ -45,16 +36,16 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { getRandomVideo, getVideo } from "@/net/apis";
-import { DownloadTrackingVideo, VideoModel } from "@/models";
-import Plyr from "plyr";
-import plyrIcons from "plyr/dist/plyr.svg";
-import VideoInfo from "./VideoInfo.vue";
+import { DownloadTrackingVideo, VideoModel } from '@/models';
+import { getRandomVideo, getVideo } from '@/net/apis';
 import { DownloadManager } from '@/tools/DownloadManager';
+import Plyr from 'plyr';
+import plyrIcons from 'plyr/dist/plyr.svg';
+import Vue from 'vue';
+import VideoInfo from './VideoInfo.vue';
 
 export default Vue.extend({
-    name: "Video",
+    name: 'Video',
     components: { VideoInfo },
     data: () => ({
         video: null as Nullable<DownloadTrackingVideo>,
@@ -79,10 +70,10 @@ export default Vue.extend({
             handler(loaded: boolean) {
                 if (loaded) {
                     this.player!.source = {
-                        type: "video",
+                        type: 'video',
                         sources: [{
                             src: this.video!.url,
-                            type: "video/mp4",
+                            type: 'video/mp4',
                         }],
                         poster: this.video!.thumb,
                     };
@@ -114,7 +105,7 @@ export default Vue.extend({
 
             document.title = video.title;
 
-            this.$root.$emit("Video:loaded", this.video);
+            this.$root.$emit('Video:loaded', this.video);
         },
         setUpPlayer() {
             this.player = new Plyr(this.$refs.player as HTMLElement, {
@@ -139,7 +130,7 @@ export default Vue.extend({
         },
     },
     async created() {
-        this.$root.$on("Video:random", this.random);
+        this.$root.$on('Video:random', this.random);
 
         await this.loadVideo();
     },
@@ -154,7 +145,7 @@ export default Vue.extend({
         }
     },
     beforeDestroy() {
-        this.$root.$off("Video:random", this.random);
+        this.$root.$off('Video:random', this.random);
 
         this.player?.destroy();
         this.downloadManager?.destroy();

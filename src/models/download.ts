@@ -1,188 +1,112 @@
-import { removeDownload, startDownload, stopDownload } from '@/net/apis';
 import { WSAPI } from '@/net/websocket';
 import { VideoModel } from './video';
 
-const SPEED_FILTER_STRENGTH = 5;
-
-export interface DownloadTask {
-    id: string;
-    name: string;
-    state: DownloadTaskState;
-    type: 'video' | 'image';
-    loaded: number;
-    size: number;
-    error?: string;
+// see https://aria2.github.io/manual/en/html/aria2c.html#aria2.tellStatus
+export enum DownloadStatus {
+    ACTIVE = 'active',
+    WAITING = 'waiting',
+    PAUSED = 'paused',
+    ERROR = 'error',
+    COMPLETE = 'complete',
+    REMOVED = 'removed',
 }
 
-export enum DownloadTaskState {
-    INITIAL,
-    LOADING,
-    SUCCEEDED,
-    FAILED,
-    STOPPED,
+// the details of an Aria download
+export interface Download {
+    id: string;
+    status: DownloadStatus;
+    totalLength: number; // bytes
+    completedLength: number; // bytes
+    downloadSpeed: number; // bytes/sec
+    errorMessage: string;
 }
 
 export interface DownloadWSAPI extends WSAPI {
     url: 'download/',
-    params: {
-        interval?: number;
-    },
+    params: {},
     send: '';
     receive: {
-        type: 'tasks',
-        data: DownloadTask[];
+        type: 'status',
+        data: Download[];
     } | {
         type: 'added' | 'loaded',
-        data: string; // the task's ID
+        data: string[]; // the download IDs
     };
 }
 
-export interface DownloadTaskModel extends DownloadTask {}
+export interface DownloadModel extends Download {}
 
-export class DownloadTaskModel {
+export class DownloadModel {
     progress = '0%';
 
-    // bytes per second
-    speed = 0;
-
-    // last time the speed was updated
-    speedUpdateTime = Date.now();
-
-    get startable() {
-        return this.state == DownloadTaskState.STOPPED || this.state === DownloadTaskState.FAILED;
-    }
-
-    constructor(task: DownloadTask) {
-        Object.assign(this, task);
+    constructor(download: Download) {
+        Object.assign(this, download);
 
         // init the progress
-        this.updateProgress(this.loaded);
+        this.updateProgress();
     }
 
-    update(task: DownloadTask) {
-        const lastLoaded = this.loaded;
-        const shouldUpdateProgress = this.state === DownloadTaskState.LOADING && !this.error;
-
+    update(task: Download) {
         Object.assign(this, task);
-
-        if (shouldUpdateProgress) {
-            this.updateProgress(lastLoaded);
-        }
     }
 
-    private updateProgress(lastLoaded: number) {
-        const now = Date.now();
-
-        // avoid zero time
-        const deltaTime = (now - this.speedUpdateTime) || 1;
-
-        const instantaneousSpeed = (this.loaded - lastLoaded) / deltaTime * 1000;
-
-        this.speed += (instantaneousSpeed - this.speed) / SPEED_FILTER_STRENGTH;
-        this.speedUpdateTime = now;
-        this.progress = ~~(this.loaded / this.size * 100) + '%';
-    }
-
-    async start() {
-        if (!this.startable) {
-            throw new Error('Invalid state: ' + DownloadTaskState[this.state]);
-        }
-
-        // remember to reset the status or the computed speed will get crazy for the first few seconds
-        this.speedUpdateTime = Date.now();
-
-        return startDownload(this.id);
-    }
-
-    async stop() {
-        return stopDownload(this.id);
-    }
-
-    async remove() {
-        return removeDownload(this.id);
+    private updateProgress() {
+        this.progress = ~~(this.completedLength / this.totalLength * 100) + '%';
     }
 }
 
-export interface DownloadTrackingVideo extends VideoModel {}
-
-export class DownloadTrackingVideo {
+export class DownloadTrackingVideo extends VideoModel {
     // null to be reactive in Vue
-    videoTask: Nullable<DownloadTaskModel> = null;
-    thumbTask: Nullable<DownloadTaskModel> = null;
+    download: Nullable<DownloadModel> = null;
 
     videoLoaded: boolean;
     thumbLoaded: boolean;
 
     constructor(video: VideoModel) {
-        Object.assign(this, video);
+        super(video);
 
-        this.videoLoaded = !video.video_dl_id;
-        this.thumbLoaded = !video.thumb_dl_id;
+        this.videoLoaded = !video.video_dl_url;
+        this.thumbLoaded = !video.thumb_dl_url;
     }
 
-    updateTask(tasks: DownloadTaskModel[]) {
-        let videoTask: DownloadTaskModel | undefined;
-        let thumbTask: DownloadTaskModel | undefined;
+    addDownload(download: DownloadModel) {
+        this.download = download;
+    }
 
-        for (const task of tasks) {
-            if (task.id === this.video_dl_id) {
-                videoTask = task;
-            } else if (task.id === this.thumb_dl_id) {
-                thumbTask = task;
-            }
+    updateDownload(downloads: DownloadModel[]) {
+        if (!this.video_dl_id) {
+            return;
         }
 
-        if (videoTask) {
+        const download = downloads.find(download => download.id === this.video_dl_id);
+
+        if (download) {
             // only care about the error of video task
-            this.error = videoTask.error;
-        } else if (!this.videoTask && !this.videoLoaded) {
-            this.error = "Not downloaded";
+            this.error = download.errorMessage;
+        } else if (!this.download && !this.videoLoaded) {
+            this.error = 'Not downloaded';
         }
 
-        this.videoTask = videoTask;
-        this.thumbTask = thumbTask;
+        this.download = download;
     }
 
-    finishTask(taskID: string): boolean {
-        if (taskID === this.video_dl_id) {
+    finishDownload(downloadID: string): boolean {
+        if (downloadID === this.video_dl_id) {
+            this.video_dl_url = null;
             this.video_dl_id = null;
-            this.videoTask = null;
+            this.download = null;
+            this.error = null;
             this.videoLoaded = true;
 
             return true;
-        } else if (taskID === this.thumb_dl_id) {
+        } else if (downloadID === this.thumb_dl_id) {
+            this.thumb_dl_url = null;
             this.thumb_dl_id = null;
-            this.thumbTask = null;
             this.thumbLoaded = true;
 
             return true;
         }
 
         return false;
-    }
-
-    async retryDownload() {
-        this.error = undefined;
-
-        try {
-            let retried = false;
-
-            if (this.videoTask?.startable) {
-                retried = true;
-                await this.videoTask.start();
-            }
-
-            if (this.thumbTask?.startable) {
-                retried = true;
-                await this.thumbTask.start();
-            }
-
-            if (!retried) {
-                throw new TypeError('Could not retry any task.');
-            }
-        } catch (e) {
-            console.warn(e, this.videoTask, this.thumbTask);
-            this.error = e;
-        }
     }
 }

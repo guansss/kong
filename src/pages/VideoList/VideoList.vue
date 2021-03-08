@@ -1,6 +1,6 @@
 <template>
   <v-container class="pt-0">
-    <VideoFilters/>
+    <VideoFilters />
 
     <v-row class="mx-n5 mx-md-n1 mt-0 mb-1">
       <v-col
@@ -21,13 +21,13 @@
           >
             <div
                 class="cover fill-height d-flex flex-column justify-center text-center"
-                :style="video.error&&'background:rgba(0,0,0,.5)'"
+                :style="video.videoLoaded||'background:rgba(0,0,0,.5)'"
             >
-              <template v-if="video.videoTask">
-                <div class="mb-1 text-h4">{{ video.videoTask.progress }}</div>
+              <template v-if="video.download">
+                <div class="mb-1 text-h4">{{ video.download.progress }}</div>
                 <div class="subtitle-1">
-                  {{ video.videoTask.loaded|size }} / {{ video.videoTask.size|size }}<br>
-                  ({{ video.videoTask.speed|size }}/s)
+                  {{ video.download.completedLength|size }} / {{ video.download.totalLength|size }}<br>
+                  ({{ video.download.downloadSpeed|size }}/s)
                 </div>
               </template>
               <div
@@ -35,16 +35,6 @@
                   class="subtitle-1"
               >{{ video.error }}
               </div>
-              <!-- Use `@click.stop.prevent` to prevent triggering the underlying v-card, which will be rendered as an <a> tag -->
-              <v-btn
-                  icon
-                  absolute
-                  v-if="video.error&&video.videoTask"
-                  style="top:0;left:0"
-                  @click.stop.prevent="video.retryDownload()"
-              >
-                <v-icon>mdi-reload</v-icon>
-              </v-btn>
               <div
                   v-else
                   class="rating pa-1"
@@ -63,12 +53,13 @@
                   bottom
                   left
               >
-                <!-- Use `@click.stop.prevent` for the same reason as above -->
                 <template v-slot:activator="{ on, attrs }">
+                  <!-- Use `@click.stop.prevent` to prevent triggering the underlying v-card, which will be rendered as an <a> tag -->
                   <v-btn
                       icon
+                      large
                       absolute
-                      style="top:0;right:0"
+                      class="video-menu"
                       v-bind="attrs"
                       v-on="on"
                       @click.stop.prevent
@@ -109,7 +100,7 @@
               >{{ char.name }}
               </router-link>
             </div>
-            <!-- a whitespace to hold the place when the video has no characters -->
+              <!-- a whitespace to hold the place when the video has no characters -->
             <pre v-else> </pre>
 
             <div class="mt-1 d-flex flex-wrap">
@@ -135,17 +126,17 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { getVideos } from "@/net/apis";
-import { DownloadTrackingVideo } from "@/models";
-import VideoFilters from "./VideoFilters.vue";
-import { Dictionary } from "lodash";
+import { DownloadTrackingVideo } from '@/models';
+import { getVideos } from '@/net/apis';
 import { DownloadManager } from '@/tools/DownloadManager';
+import { Dictionary } from 'lodash';
+import Vue from 'vue';
+import VideoFilters from './VideoFilters.vue';
 
 const PAGE_SIZE = 24;
 
 export default Vue.extend({
-    name: "VideoList",
+    name: 'VideoList',
     components: { VideoFilters },
     props: {},
     data: () => ({
@@ -175,7 +166,7 @@ export default Vue.extend({
                 creator: query.creator || undefined,
                 char: query.char || undefined,
                 tag: query.tag || undefined,
-                order: query.order || "created",
+                order: query.order || 'created',
                 offset: (this.page - 1) * PAGE_SIZE,
                 limit: PAGE_SIZE,
             });
@@ -195,8 +186,8 @@ export default Vue.extend({
             this.downloadManager.on('added', this.refresh);
         },
         async remove(video: DownloadTrackingVideo) {
-            this.$root.$emit("Confirm:show", {
-                title: "Delete Video",
+            this.$root.$emit('Confirm:show', {
+                title: 'Delete Video',
                 content: video.title,
                 confirm: (confirmed: boolean) => {
                     if (confirmed) {
@@ -230,6 +221,10 @@ export default Vue.extend({
   &.theme--dark:hover {
     background-color: #333;
   }
+
+  &:hover .cover:before {
+    background-color: rgba(0, 0, 0, .3);
+  }
 }
 
 // don't show a text selector on items rendered as <div> instead of <a>
@@ -243,13 +238,16 @@ div.item {
     position: absolute;
     width: 100%;
     height: 100%;
-    opacity: 0;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 40%);
-    transition: opacity 0.1s ease-out;
+    transition: background-color 0.1s ease-out;
   }
+}
 
-  &:hover:before {
-    opacity: 1;
+.video-menu {
+  top: 0;
+  right: 0;
+
+  &:hover::before {
+    opacity: 0.3;
   }
 }
 
