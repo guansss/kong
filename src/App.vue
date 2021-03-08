@@ -1,8 +1,6 @@
 <template>
   <v-app dark>
-    <v-fade-transition mode="out-in">
-      <router-view name="bar"></router-view>
-    </v-fade-transition>
+    <router-view name="bar"></router-view>
 
     <v-navigation-drawer
         app
@@ -29,8 +27,8 @@
     </v-navigation-drawer>
 
     <v-main>
-      <v-fade-transition mode="out-in">
-        <router-view></router-view>
+      <v-fade-transition duration="100">
+        <router-view style="position: absolute"></router-view>
       </v-fade-transition>
     </v-main>
 
@@ -73,9 +71,9 @@ export default Vue.extend({
     methods: {
         async reload() {
             const path = this.$route.fullPath;
-            this.$router.replace('/nonexisting');
+            await this.$router.replace('/nonexistent');
             await this.$nextTick();
-            this.$router.replace(path);
+            await this.$router.replace(path);
         },
         snack(message: string, timeout: number = 5000) {
             this.snackbar.message = message;

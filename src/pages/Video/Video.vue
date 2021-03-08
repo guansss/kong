@@ -1,6 +1,6 @@
 <template>
   <v-container class="pb-4">
-    <div class="video">
+    <div :class="['video', videoInitialized || 'video-initial']">
       <video
           ref="player"
           playsinline
@@ -48,6 +48,9 @@ export default Vue.extend({
     name: 'Video',
     components: { VideoInfo },
     data: () => ({
+        // will be set to true when the first video's aspect ratio has been fetched
+        videoInitialized: false,
+
         video: null as Nullable<DownloadTrackingVideo>,
 
         player: undefined as Plyr | undefined,
@@ -61,7 +64,7 @@ export default Vue.extend({
             immediate: true,
             handler(loaded: boolean) {
                 if (loaded && !this.video!.videoLoaded) {
-                    this.player!.poster = this.video!.thumb;
+                    this.updatePlayer(this.video!.thumb);
                 }
             },
         },
@@ -69,14 +72,7 @@ export default Vue.extend({
             immediate: true,
             handler(loaded: boolean) {
                 if (loaded) {
-                    this.player!.source = {
-                        type: 'video',
-                        sources: [{
-                            src: this.video!.url,
-                            type: 'video/mp4',
-                        }],
-                        poster: this.video!.thumb,
-                    };
+                    this.updatePlayer(this.video!.thumb, this.video!.url);
                 }
             },
         },
@@ -106,12 +102,36 @@ export default Vue.extend({
             document.title = video.title;
 
             this.$root.$emit('Video:loaded', this.video);
+
+            if (this.video.videoLoaded) {
+                this.updatePlayer(this.video.thumb, this.video.url);
+            } else if (this.video.thumbLoaded) {
+                this.updatePlayer(this.video.thumb);
+            }
         },
         setUpPlayer() {
             this.player = new Plyr(this.$refs.player as HTMLElement, {
                 iconUrl: plyrIcons,
                 seekTime: 5,
             });
+
+            this.player.on('loadedmetadata', () => {
+                // Plyr has a stupid 50ms delay to set the aspect ratio
+                setTimeout(() => this.videoInitialized = true, 50);
+            });
+        },
+        updatePlayer(thumb: string, src?: string) {
+            if (!src) {
+                this.player!.poster = thumb;
+            } else {
+                this.player!.source = {
+                    type: 'video',
+                    sources: [{
+                        src: src,
+                        type: 'video/mp4',
+                    }],
+                };
+            }
         },
         async random() {
             try {
@@ -147,8 +167,10 @@ export default Vue.extend({
     beforeDestroy() {
         this.$root.$off('Video:random', this.random);
 
-        this.player?.destroy();
         this.downloadManager?.destroy();
+
+        // defer the destruction until the router-view transition has finished in order to prevent UI flickering
+        setTimeout(() => this.player?.destroy(), 500);
     },
 });
 </script>
@@ -159,6 +181,13 @@ export default Vue.extend({
 >
 .video {
   position: relative;
+}
+
+.video-initial {
+  ::v-deep video {
+    height: 0;
+    padding-top: 56.25%; // 16:9 aspect ratio
+  }
 }
 
 .cover {
