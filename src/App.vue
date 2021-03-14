@@ -28,7 +28,7 @@
 
     <v-main>
       <v-fade-transition duration="100">
-        <router-view style="position: absolute"></router-view>
+        <router-view></router-view>
       </v-fade-transition>
     </v-main>
 
