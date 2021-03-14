@@ -24,7 +24,7 @@ export function toFilter(type: VideoFilterTypes) {
         Object.assign(model, {
             type: type,
             color: COLOR_MAP[type],
-            label: model.name + ((model as any).alias ? ` (${(model as any).alias})` : ""),
+            label: model.name + ((model as any).alias ? ` (${(model as any).alias})` : ''),
         });
 }
 
@@ -62,7 +62,8 @@ export abstract class FilterManager<T extends VideoFilterModels> {
         if (query[this.type]) {
             await this.init();
 
-            const isInQuery = (filter: VideoFilter<T>) => query[this.type].includes(filter.id + "");
+            const ids = query[this.type].split(',');
+            const isInQuery = (filter: VideoFilter<T>) => ids.includes(filter.id + '');
 
             if (this.multiple) {
                 this.selected = this.all.filter(isInQuery);
@@ -76,7 +77,7 @@ export abstract class FilterManager<T extends VideoFilterModels> {
 
     toQuery(): string {
         if (Array.isArray(this.selected)) {
-            return this.selected.map((char) => char.id).join(",");
+            return this.selected.map((char) => char.id).join(',');
         }
 
         return String(this.selected?.id ?? '');
