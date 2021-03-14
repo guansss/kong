@@ -2,6 +2,13 @@
   <v-container class="pt-0">
     <VideoFilters />
 
+    <v-pagination
+        v-if="total"
+        :value="page"
+        :length="pages"
+        total-visible="10"
+        @input="$router.push($query({page:$event}))"
+    ></v-pagination>
     <v-row class="mx-n5 mx-md-n1 mt-0 mb-1">
       <v-col
           v-for="video in videos"
@@ -120,6 +127,7 @@
         v-if="total"
         :value="page"
         :length="pages"
+        total-visible="10"
         @input="$router.push($query({page:$event}))"
     ></v-pagination>
   </v-container>
