@@ -1,7 +1,7 @@
-import { PersonModel } from './person';
-import { CharacterModel } from './character';
-import { TagModel } from './tag';
 import { deleteVideo, updateVideo } from '@/net/apis';
+import { CharacterModel } from './character';
+import { PersonModel } from './person';
+import { TagModel } from './tag';
 
 export interface VideoRecord {
     id: number;

@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import Vue from 'vue';
 
 export interface ConfirmAction {
     title?: string;
@@ -38,7 +38,7 @@ export interface ConfirmAction {
 }
 
 export default Vue.extend({
-    name: "Confirm",
+    name: 'Confirm',
     data: () => ({
         visible: false,
 
@@ -60,10 +60,10 @@ export default Vue.extend({
         },
     },
     created() {
-        this.$root.$on("Confirm:show", this.show);
+        this.$root.$on('Confirm:show', this.show);
     },
     beforeDestroy() {
-        this.$root.$off("Confirm:show", this.show);
+        this.$root.$off('Confirm:show', this.show);
     },
 });
 </script>

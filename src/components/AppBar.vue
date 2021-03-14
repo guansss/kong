@@ -12,24 +12,24 @@
       <v-app-bar-nav-icon @click="$root.$emit('drawer')"></v-app-bar-nav-icon>
       <v-toolbar-title v-if="barTitle">{{ barTitle }}</v-toolbar-title>
 
-      <slot/>
+      <slot />
     </v-container>
 
     <template
         v-if="$scopedSlots.extension"
         v-slot:extension
     >
-      <slot name="extension"/>
+      <slot name="extension" />
     </template>
   </v-app-bar>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { startCase } from "lodash";
+import { startCase } from 'lodash';
+import Vue from 'vue';
 
 export default Vue.extend({
-    name: "AppBar",
+    name: 'AppBar',
     props: {
         title: String,
         fluid: Boolean,

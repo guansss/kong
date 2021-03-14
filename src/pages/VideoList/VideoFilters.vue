@@ -69,8 +69,8 @@
               small
               v-if="order.endsWith(item[0])"
           >{{
-              order.startsWith('-') ? 'mdi-chevron-up' : 'mdi-chevron-down'
-            }}</v-icon>
+                  order.startsWith('-') ? 'mdi-chevron-up' : 'mdi-chevron-down'
+           }}</v-icon>
         </v-btn>
       </v-btn-toggle>
     </div>
@@ -78,14 +78,14 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import fuzzysearch from "fuzzysearch";
-import { pull } from "@/utils/collection";
-import { Dictionary } from "lodash";
-import { CharacterFilterManager, CreatorFilterManager, TagFilterManager, VideoFilter } from "./FilterManager";
+import { pull } from '@/utils/collection';
+import fuzzysearch from 'fuzzysearch';
+import { Dictionary } from 'lodash';
+import Vue from 'vue';
+import { CharacterFilterManager, CreatorFilterManager, TagFilterManager, VideoFilter } from './FilterManager';
 
 export default Vue.extend({
-    name: "VideoFilters",
+    name: 'VideoFilters',
     components: {},
     props: {},
     data: () => ({
@@ -98,17 +98,17 @@ export default Vue.extend({
 
         filters: [] as VideoFilter[],
 
-        order: "",
+        order: '',
     }),
     watch: {
-        $route: "parseQuery",
-        "creator.add.selected"() {
+        $route: 'parseQuery',
+        'creator.add.selected'() {
             this.updateFilters();
         },
-        "char.add.selected"() {
+        'char.add.selected'() {
             this.updateFilters();
         },
-        "tag.add.selected"() {
+        'tag.add.selected'() {
             this.updateFilters();
         },
     },
@@ -133,7 +133,7 @@ export default Vue.extend({
         async parseQuery() {
             const query = this.$route.query as Dictionary<string>;
 
-            this.order = query.order || "";
+            this.order = query.order || '';
 
             await Promise.all([
                 this.creator.parseQuery(query),
@@ -145,20 +145,20 @@ export default Vue.extend({
         },
         removeFilter(filter: VideoFilter) {
             switch (filter.type) {
-                case "creator":
+                case 'creator':
                     this.creator.selected = null;
                     break;
 
-                case "char":
+                case 'char':
                     pull(this.char.selected, filter);
                     break;
 
-                case "tag":
+                case 'tag':
                     pull(this.tag.selected, filter);
                     break;
 
                 default:
-                    console.warn("Unknown type: " + filter.type);
+                    console.warn('Unknown type: ' + filter.type);
             }
 
             this.updateFilters();
@@ -167,7 +167,7 @@ export default Vue.extend({
             this.creator.selected = null;
             this.char.selected = [];
             this.tag.selected = [];
-            this.order = "";
+            this.order = '';
             this.updateFilters();
         },
         async updateFilters(navigate = true) {
@@ -184,7 +184,7 @@ export default Vue.extend({
         setOrder(order: string) {
             if (this.order === order) {
                 // invert the order by prefixing the "-", which means ascending
-                this.order = "-" + order;
+                this.order = '-' + order;
             } else {
                 this.order = order;
             }
@@ -207,12 +207,12 @@ export default Vue.extend({
         },
     },
     async created() {
-        this.$root.$on("VideoFilters:visible", this.setVisible);
+        this.$root.$on('VideoFilters:visible', this.setVisible);
 
         this.parseQuery();
     },
     beforeDestroy() {
-        this.$root.$off("VideoFilters:visible", this.setVisible);
+        this.$root.$off('VideoFilters:visible', this.setVisible);
     },
 });
 </script>

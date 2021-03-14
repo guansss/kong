@@ -116,19 +116,19 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from "vue";
-import fuzzysearch from "fuzzysearch";
-import { VideoModel } from "@/models";
+import { VideoModel } from '@/models';
+import fuzzysearch from 'fuzzysearch';
+import Vue, { PropType } from 'vue';
 import {
     AttributeManager,
     CharacterAttributeManager,
     TagAttributeManager,
     toAttribute,
     VideoAttribute,
-} from "./AttributeManager";
+} from './AttributeManager';
 
 export default Vue.extend({
-    name: "VideoInfo",
+    name: 'VideoInfo',
     components: {},
     props: {
         video: {
@@ -149,20 +149,20 @@ export default Vue.extend({
         video: {
             immediate: true,
             handler(video: VideoModel) {
-                video.chars.forEach(toAttribute("char"));
-                video.tags.forEach(toAttribute("tag"));
+                video.chars.forEach(toAttribute('char'));
+                video.tags.forEach(toAttribute('tag'));
             },
         },
-        "char.add.dialog"() {
+        'char.add.dialog'() {
             this.dialogChanged(this.char);
         },
-        "char.add.selected"() {
+        'char.add.selected'() {
             this.selectedChanged(this.char);
         },
-        "tag.add.dialog"() {
+        'tag.add.dialog'() {
             this.dialogChanged(this.tag);
         },
-        "tag.add.selected"() {
+        'tag.add.selected'() {
             this.selectedChanged(this.tag);
         },
     },
@@ -183,15 +183,15 @@ export default Vue.extend({
         selectedChanged(manager: AttributeManager) {
             if (manager.add.selected) {
                 manager.add.name = manager.add.selected.name;
-                manager.add.alias = manager.add.selected.alias || "";
+                manager.add.alias = manager.add.selected.alias || '';
             }
         },
     },
     created() {
-        this.$root.$on("Video:edit", this.setEdit);
+        this.$root.$on('Video:edit', this.setEdit);
     },
     beforeDestroy() {
-        this.$root.$off("Video:edit", this.setEdit);
+        this.$root.$off('Video:edit', this.setEdit);
     },
 });
 </script>

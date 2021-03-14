@@ -57,7 +57,7 @@ import Vue from 'vue';
 import store from './store';
 
 export default Vue.extend({
-    name: "VideoBar",
+    name: 'VideoBar',
     components: { AppBar },
     store,
     data: () => ({
@@ -76,11 +76,11 @@ export default Vue.extend({
         },
         toggleEdit() {
             this.edit = !this.edit;
-            this.$root.$emit("Video:edit", this.edit);
+            this.$root.$emit('Video:edit', this.edit);
         },
         deleteVideo() {
-            this.$root.$emit("Confirm:show", {
-                title: "Delete Video",
+            this.$root.$emit('Confirm:show', {
+                title: 'Delete Video',
                 confirm: (confirmed: boolean) => {
                     if (confirmed) {
                         this.video?.remove().catch(console.warn);
@@ -137,10 +137,10 @@ export default Vue.extend({
         },
     },
     created() {
-        this.$root.$on("Video:loaded", this.videoLoaded);
+        this.$root.$on('Video:loaded', this.videoLoaded);
     },
     beforeDestroy() {
-        this.$root.$off("Video:loaded", this.videoLoaded);
+        this.$root.$off('Video:loaded', this.videoLoaded);
     },
 });
 </script>

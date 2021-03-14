@@ -23,11 +23,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import AppBar from "@/components/AppBar.vue";
+import AppBar from '@/components/AppBar.vue';
+import Vue from 'vue';
 
 export default Vue.extend({
-    name: "ControlRoomBar",
+    name: 'ControlRoomBar',
     components: { AppBar },
     data: () => ({
         edit: false,
@@ -36,7 +36,7 @@ export default Vue.extend({
     methods: {
         toggleEdit() {
             this.edit = !this.edit;
-            this.$root.$emit("ControlRoom:edit", this.edit);
+            this.$root.$emit('ControlRoom:edit', this.edit);
         },
         toggleReady() {
             this.ready = !this.ready;

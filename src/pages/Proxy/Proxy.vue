@@ -14,11 +14,11 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
 import { getProxy, setProxy } from '@/net/apis';
+import Vue from 'vue';
 
 export default Vue.extend({
-    name: "Proxy",
+    name: 'Proxy',
     data: () => ({
         currentServer: '',
         inputServer: '',

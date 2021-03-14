@@ -1,5 +1,5 @@
-import Vue from 'vue';
 import { insert } from '@/utils/string';
+import Vue from 'vue';
 
 Vue.filter('date', (time: number) => {
     const str = new Date(time).toLocaleString('zh-cn', { hour12: false });

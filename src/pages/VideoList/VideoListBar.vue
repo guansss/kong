@@ -17,11 +17,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import AppBar from "@/components/AppBar.vue";
+import AppBar from '@/components/AppBar.vue';
+import Vue from 'vue';
 
 export default Vue.extend({
-    name: "VideoListBar",
+    name: 'VideoListBar',
     components: { AppBar },
     data: () => ({
         filtersVisible: false,
@@ -29,7 +29,7 @@ export default Vue.extend({
     methods: {
         toggleFilters() {
             this.filtersVisible = !this.filtersVisible;
-            this.$root.$emit("VideoFilters:visible", this.filtersVisible);
+            this.$root.$emit('VideoFilters:visible', this.filtersVisible);
         },
     },
     created() {},

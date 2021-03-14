@@ -9,8 +9,8 @@ import {
     removeCharacterFromVideo,
     removeTagFromVideo,
 } from '@/net/apis';
-import { assert } from '@/utils/misc';
 import { pull } from '@/utils/collection';
+import { assert } from '@/utils/misc';
 
 export type VideoAttributeModels = CharacterModel | TagModel;
 export type VideoAttributeTypes = 'char' | 'tag';
@@ -32,7 +32,7 @@ export function toAttribute(type: VideoAttributeTypes) {
     return <T extends VideoAttributeModels>(model: T): VideoAttribute<T> =>
         Object.assign(model, {
             color: COLOR_MAP[type],
-            label: model.name + (model.alias ? ` (${model.alias})` : ""),
+            label: model.name + (model.alias ? ` (${model.alias})` : ''),
         });
 }
 
@@ -61,9 +61,9 @@ export abstract class AttributeManager<T extends VideoAttributeModels = VideoAtt
         pending: false,
         candidates: [] as VideoAttribute<T>[],
         selected: null as Nullable<VideoAttribute<T>>,
-        name: "",
-        alias: "",
-        error: "",
+        name: '',
+        alias: '',
+        error: '',
     };
 
     constructor(video: VideoModel) {
@@ -97,8 +97,8 @@ export abstract class AttributeManager<T extends VideoAttributeModels = VideoAtt
 
     resetAdd() {
         this.add.selected = null;
-        this.add.name = "";
-        this.add.alias = "";
+        this.add.name = '';
+        this.add.alias = '';
     }
 
     async submitAdd() {
@@ -106,7 +106,7 @@ export abstract class AttributeManager<T extends VideoAttributeModels = VideoAtt
 
         assert(!this.add.pending);
 
-        this.add.error = "";
+        this.add.error = '';
         this.add.pending = true;
 
         try {
@@ -130,7 +130,7 @@ export abstract class AttributeManager<T extends VideoAttributeModels = VideoAtt
 
             this.add.dialog = false;
         } catch (e) {
-            this.add.error = e + "";
+            this.add.error = e + '';
         }
 
         this.add.pending = false;

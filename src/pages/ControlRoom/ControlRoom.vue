@@ -80,7 +80,7 @@ const PRIMARY_POSITION = 'tr';
 const NONE = 0;
 
 export default Vue.extend({
-    name: "ControlRoom",
+    name: 'ControlRoom',
     data: () => ({
         panels: POSITIONS.map(position => ({
             position,
@@ -178,10 +178,10 @@ export default Vue.extend({
                 }
 
                 player.source = {
-                    type: "video",
+                    type: 'video',
                     sources: [{
                         src: video.url,
-                        type: "video/mp4",
+                        type: 'video/mp4',
                     }],
                     poster: video.thumb,
                 };
@@ -269,9 +269,9 @@ export default Vue.extend({
         this.updateLayout();
         this.observe();
 
-        this.$root.$on("ControlRoom:edit", this.setEdit);
-        this.$root.$on("ControlRoom:ready", this.setReady);
-        this.$root.$emit("drawer", false);
+        this.$root.$on('ControlRoom:edit', this.setEdit);
+        this.$root.$on('ControlRoom:ready', this.setReady);
+        this.$root.$emit('drawer', false);
     },
     async mounted() {
         await delay(200);
@@ -286,8 +286,8 @@ export default Vue.extend({
         this.updateLayout();
     },
     beforeDestroy() {
-        this.$root.$off("ControlRoom:edit", this.setEdit);
-        this.$root.$off("ControlRoom:ready", this.setReady);
+        this.$root.$off('ControlRoom:edit', this.setEdit);
+        this.$root.$off('ControlRoom:ready', this.setReady);
 
         for (const panel of this.panels) {
             panel.player?.destroy();
