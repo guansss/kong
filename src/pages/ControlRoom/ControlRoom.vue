@@ -45,7 +45,9 @@
               <v-btn
                   class="close"
                   @click="removePanel(i)"
-              ><v-icon>mdi-close</v-icon></v-btn>
+              >
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
             </div>
           </TempVar>
         </v-overlay>

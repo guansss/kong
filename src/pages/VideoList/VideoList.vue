@@ -104,10 +104,9 @@
                   :key="char.id"
                   class="link mr-2 pink--text text--lighten-2"
                   :to="{query:{char:char.id+''}}"
-              >{{ char.name }}
-              </router-link>
+              >{{ char.name }}</router-link>
             </div>
-              <!-- a whitespace to hold the place when the video has no characters -->
+            <!-- a whitespace to hold the place when the video has no characters -->
             <pre v-else> </pre>
 
             <div class="mt-1 d-flex flex-wrap">

@@ -68,9 +68,7 @@
           <v-icon
               small
               v-if="order.endsWith(item[0])"
-          >{{
-                  order.startsWith('-') ? 'mdi-chevron-up' : 'mdi-chevron-down'
-           }}</v-icon>
+          >{{ order.startsWith('-') ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
         </v-btn>
       </v-btn-toggle>
     </div>
