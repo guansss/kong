@@ -171,7 +171,7 @@ export default Vue.extend({
             this.edit = edit;
         },
         search(attr: VideoAttribute, queryText: string, itemText: string): boolean {
-            return fuzzysearch(queryText, attr.label);
+            return fuzzysearch(queryText.toLowerCase(), attr.label.toLowerCase());
         },
         dialogChanged(manager: AttributeManager) {
             if (manager.add.dialog) {

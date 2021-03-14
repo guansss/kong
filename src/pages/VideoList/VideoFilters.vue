@@ -128,7 +128,7 @@ export default Vue.extend({
             ]);
         },
         search(filter: VideoFilter, queryText: string, itemText: string): boolean {
-            return fuzzysearch(queryText, filter.label);
+            return fuzzysearch(queryText.toLowerCase(), filter.label.toLowerCase());
         },
         async parseQuery() {
             const query = this.$route.query as Dictionary<string>;
