@@ -200,6 +200,9 @@ export default Vue.extend({
                     char: this.char.toQuery(),
                     tag: this.tag.toQuery(),
                     order: this.order,
+
+                    // remember reset the page number!
+                    page: 0,
                 }),
             );
 
