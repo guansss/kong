@@ -53,7 +53,9 @@ export abstract class FilterManager<T extends VideoFilterModels> {
     async _init() {
         this.loading = true;
 
-        this.all = (await this.getAll()).map(toFilter(this.type));
+        this.all = (await this.getAll())
+            .map(toFilter(this.type))
+            .sort((a, b) => a.label.localeCompare(b.label));
 
         this.loading = false;
     }
