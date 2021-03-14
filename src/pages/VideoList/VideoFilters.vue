@@ -1,6 +1,7 @@
 <template>
   <div class="pt-3">
     <template v-if="visible">
+      <v-text-field clearable filled label="Title" v-model="search" @click:clear="searchCleared"></v-text-field>
       <v-autocomplete
           clearable
           return-object
@@ -11,7 +12,7 @@
           :multiple="manager.multiple"
           class="mb-n2"
           :disabled="navigating"
-          :filter="search"
+          :filter="searchFilter"
           :items="manager.all"
           item-text="label"
           menu-props="closeOnContentClick"
@@ -35,7 +36,7 @@
       <v-chip
           close
           v-for="filter in filters"
-          :key="filter.type+filter.id"
+          :key="filter.type+filter.label"
           class="mr-2"
           :disabled="navigating"
           :color="filter.color"
@@ -77,10 +78,19 @@
 
 <script lang="ts">
 import { pull } from '@/utils/collection';
+import { delay } from '@/utils/misc';
 import fuzzysearch from 'fuzzysearch';
-import { Dictionary } from 'lodash';
+import { debounce, DebouncedFunc, Dictionary } from 'lodash';
 import Vue from 'vue';
-import { CharacterFilterManager, CreatorFilterManager, TagFilterManager, VideoFilter } from './FilterManager';
+import VueRouter, { NavigationFailure } from 'vue-router';
+import {
+    CharacterFilterManager,
+    CreatorFilterManager,
+    TagFilterManager,
+    TitleSearchModel,
+    toFilter,
+    VideoFilter,
+} from './FilterManager';
 
 export default Vue.extend({
     name: 'VideoFilters',
@@ -97,17 +107,16 @@ export default Vue.extend({
         filters: [] as VideoFilter[],
 
         order: '',
+
+        search: '',
+
+        // will be defined in create()
+        searchUpdated: undefined as any as DebouncedFunc<() => void>,
     }),
     watch: {
         $route: 'parseQuery',
-        'creator.add.selected'() {
-            this.updateFilters();
-        },
-        'char.add.selected'() {
-            this.updateFilters();
-        },
-        'tag.add.selected'() {
-            this.updateFilters();
+        search() {
+            this.searchUpdated();
         },
     },
     methods: {
@@ -125,12 +134,13 @@ export default Vue.extend({
                 this.tag.init(),
             ]);
         },
-        search(filter: VideoFilter, queryText: string, itemText: string): boolean {
+        searchFilter(filter: VideoFilter, queryText: string, itemText: string): boolean {
             return fuzzysearch(queryText.toLowerCase(), filter.label.toLowerCase());
         },
         async parseQuery() {
             const query = this.$route.query as Dictionary<string>;
 
+            this.search = query.search || '';
             this.order = query.order || '';
 
             await Promise.all([
@@ -141,8 +151,20 @@ export default Vue.extend({
 
             this.updateFilters(false);
         },
+        async searchCleared() {
+            // wait for the `search` watcher to be invoked, which then invokes searchUpdated().
+            // delay() should be used instead of $nextTick(), otherwise the flush() will not work
+            await delay(0);
+
+            // now run it immediately
+            this.searchUpdated.flush();
+        },
         removeFilter(filter: VideoFilter) {
             switch (filter.type) {
+                case 'search':
+                    this.search = '';
+                    break;
+
                 case 'creator':
                     this.creator.selected = null;
                     break;
@@ -169,11 +191,12 @@ export default Vue.extend({
             this.updateFilters();
         },
         async updateFilters(navigate = true) {
-            this.filters = [...this.char.selected, ...this.tag.selected];
-
-            if (this.creator.selected) {
-                this.filters.unshift(this.creator.selected);
-            }
+            this.filters = [
+                this.search && toFilter('search')({ name: this.search } as TitleSearchModel),
+                this.creator.selected,
+                ...this.char.selected,
+                ...this.tag.selected,
+            ].filter(Boolean) as VideoFilter[];
 
             if (navigate) {
                 this.navigate();
@@ -192,23 +215,37 @@ export default Vue.extend({
         async navigate() {
             this.navigating = true;
 
-            await this.$router.push(
-                this.$query({
-                    creator: this.creator.toQuery(),
-                    char: this.char.toQuery(),
-                    tag: this.tag.toQuery(),
-                    order: this.order,
+            try {
+                await this.$router.push(
+                    this.$query({
+                        search: this.search,
+                        order: this.order,
+                        creator: this.creator.toQuery(),
+                        char: this.char.toQuery(),
+                        tag: this.tag.toQuery(),
 
-                    // remember reset the page number!
-                    page: 0,
-                }),
-            );
+                        // remember reset the page number!
+                        page: 0,
+                    }),
+                );
+            } catch (e) {
+                if ((e as NavigationFailure).type === VueRouter.NavigationFailureType.duplicated) {
+                    // just don't bother me with a full stacktrace message
+                    console.warn('Navigation duplicated.');
+                } else {
+                    console.warn(e);
+                }
+            }
 
             this.navigating = false;
         },
     },
     async created() {
         this.$root.$on('VideoFilters:visible', this.setVisible);
+
+        // this method must be placed here instead of the `methods` section or else its cancel() method will be undefined
+        // https://stackoverflow.com/a/41286377/13237325
+        this.searchUpdated = debounce(() => this.updateFilters(), 500);
 
         this.parseQuery();
     },

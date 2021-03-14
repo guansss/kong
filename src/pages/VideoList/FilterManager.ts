@@ -2,8 +2,15 @@ import { CharacterModel, PersonModel, TagModel } from '@/models';
 import { getCharacters, getPeople, getTags } from '@/net/apis';
 import { Dictionary } from 'lodash';
 
-export type VideoFilterModels = PersonModel | CharacterModel | TagModel;
-export type VideoFilterTypes = 'creator' | 'char' | 'tag';
+// a fake model to satisfy the following type definitions
+export interface TitleSearchModel {
+    // the id is fake and never used
+    id: number;
+    name: string;
+}
+
+export type VideoFilterModels = PersonModel | CharacterModel | TagModel | TitleSearchModel;
+export type VideoFilterTypes = 'creator' | 'char' | 'tag' | 'search';
 export type VideoFilter<T extends VideoFilterModels = VideoFilterModels> = T & {
     type: VideoFilterTypes;
     label: string;
@@ -11,7 +18,8 @@ export type VideoFilter<T extends VideoFilterModels = VideoFilterModels> = T & {
 };
 
 const COLOR_MAP = {
-    creator: 'primary darken-3',
+    search: 'primary darken-3',
+    creator: 'cyan darken-3',
     char: 'green darken-3',
     tag: 'deep-orange darken-3',
 };

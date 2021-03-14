@@ -170,6 +170,7 @@ export default Vue.extend({
             this.page = +query.page || 1;
 
             const result = await getVideos({
+                search: query.search || undefined,
                 creator: query.creator || undefined,
                 char: query.char || undefined,
                 tag: query.tag || undefined,

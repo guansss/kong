@@ -9,6 +9,7 @@ export async function getVideos(
         offset?: number;
         limit?: number;
         order?: string;
+        search?: string;
     },
 ): Promise<VideoList> {
     // this is what the API actually returns
