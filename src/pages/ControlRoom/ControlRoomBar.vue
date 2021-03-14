@@ -1,7 +1,7 @@
 <template>
   <app-bar
-      :absolute="ready"
       fluid
+      absolute
       title="Control Room"
   >
     <v-spacer></v-spacer>

@@ -55,12 +55,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import Plyr from "plyr";
-import plyrIcons from "plyr/dist/plyr.svg";
 import { VideoModel } from '@/models';
-import { Dictionary, intersection, without } from "lodash";
 import { getVideo } from '@/net/apis';
+import { delay } from '@/utils/misc';
+import { Dictionary, intersection, without } from 'lodash';
+import Plyr from 'plyr';
+import plyrIcons from 'plyr/dist/plyr.svg';
+import Vue from 'vue';
 
 export interface ControlRoomMessageEvent extends MessageEvent {
     data: {
@@ -272,7 +273,9 @@ export default Vue.extend({
         this.$root.$on("ControlRoom:ready", this.setReady);
         this.$root.$emit("drawer", false);
     },
-    mounted() {
+    async mounted() {
+        await delay(200);
+
         // scroll to bottom to hide the app bar
         window.scrollTo(0, document.documentElement.scrollHeight);
     },
@@ -334,6 +337,7 @@ export default Vue.extend({
 
 ::v-deep .plyr {
   width: 100%;
+  height: 100%;
 }
 
 ::v-deep .v-overlay__content {
