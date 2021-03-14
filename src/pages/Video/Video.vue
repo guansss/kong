@@ -37,16 +37,18 @@
 
 <script lang="ts">
 import { DownloadTrackingVideo, VideoModel } from '@/models';
-import { getRandomVideo, getVideo } from '@/net/apis';
+import { getRandomVideo, getVideo, updateVideoThumbnail } from '@/net/apis';
 import { DownloadManager } from '@/tools/DownloadManager';
 import Plyr from 'plyr';
 import plyrIcons from 'plyr/dist/plyr.svg';
 import Vue from 'vue';
+import store from './store';
 import VideoInfo from './VideoInfo.vue';
 
 export default Vue.extend({
     name: 'Video',
     components: { VideoInfo },
+    store,
     data: () => ({
         // will be set to true when the first video's aspect ratio has been fetched
         videoInitialized: false,
@@ -57,6 +59,7 @@ export default Vue.extend({
 
         videoIDOverwriting: false,
 
+        // available after mounted
         downloadManager: undefined as DownloadManager | undefined,
     }),
     watch: {
@@ -148,9 +151,21 @@ export default Vue.extend({
                 console.warn(e);
             }
         },
+        async updateThumbnail() {
+            if (!this.video || this.$store.state.thumbnailUpdating) {
+                return;
+            }
+
+            this.$store.state.thumbnailUpdating = true;
+
+            await updateVideoThumbnail(this.video.id, this.player!.currentTime);
+
+            this.$store.state.thumbnailUpdating = false;
+        },
     },
     async created() {
         this.$root.$on('Video:random', this.random);
+        this.$root.$on('Video:updateThumbnail', this.updateThumbnail);
 
         await this.loadVideo();
     },
@@ -166,6 +181,7 @@ export default Vue.extend({
     },
     beforeDestroy() {
         this.$root.$off('Video:random', this.random);
+        this.$root.$off('Video:updateThumbnail', this.updateThumbnail);
 
         this.downloadManager?.destroy();
 

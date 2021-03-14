@@ -25,6 +25,14 @@
     </v-btn>
     <v-btn
         icon
+        title="Update thumbnail"
+        :disabled="!video || $store.state.thumbnailUpdating"
+        @click="updateThumbnail"
+    >
+      <v-icon>mdi-image</v-icon>
+    </v-btn>
+    <v-btn
+        icon
         :title="'Random: ' + diceRolled"
         @click="random"
     >
@@ -41,15 +49,17 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import AppBar from "@/components/AppBar.vue";
-import { VideoModel } from "@/models";
+import AppBar from '@/components/AppBar.vue';
+import { VideoModel } from '@/models';
 import { ControlRoomMessageEvent } from '@/pages/ControlRoom/ControlRoom.vue';
 import { delay } from '@/utils/misc';
+import Vue from 'vue';
+import store from './store';
 
 export default Vue.extend({
     name: "VideoBar",
     components: { AppBar },
+    store,
     data: () => ({
         video: null as Nullable<VideoModel>,
         edit: false,
@@ -82,6 +92,9 @@ export default Vue.extend({
             this.diceRolled++;
             this.$root.$emit('Video:random');
         },
+        async updateThumbnail() {
+            this.$root.$emit('Video:updateThumbnail');
+        },
         async addToControlRoom() {
             if (this.video && !this.addedToControlRoom) {
                 try {
@@ -108,8 +121,14 @@ export default Vue.extend({
                     ]);
 
                     if (!this.addedToControlRoom) {
-                        // not receiving any response means that the control room has not been opened
-                        await this.$router.push({ name: 'control-room', query: { tr: this.video.id + '' } });
+                        // not receiving any response means that the control room has not been opened,
+                        // and thus a new tab should be opened
+                        const { href } = this.$router.resolve({
+                            name: 'control-room',
+                            query: { tr: this.video.id + '' },
+                        });
+
+                        window.open(href, '_blank');
                     }
                 } catch (e) {
                     console.warn(e);

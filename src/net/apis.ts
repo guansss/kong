@@ -40,6 +40,10 @@ export async function updateVideo(
     return api(`videos/${id}`, 'PATCH', props);
 }
 
+export async function updateVideoThumbnail(id: string | number, time: number): Promise<void> {
+    return api(`videos/${id}/thumb`, 'PUT', { time });
+}
+
 export async function getPeople(): Promise<PersonModel[]> {
     return api('people', 'GET');
 }
