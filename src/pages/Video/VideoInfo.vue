@@ -136,14 +136,12 @@ export default Vue.extend({
             required: true,
         },
     },
-    data() {
-        return {
-            edit: false,
+    data: () => ({
+        edit: false,
 
-            char: new CharacterAttributeManager(this.video),
-            tag: new TagAttributeManager(this.video),
-        };
-    },
+        char: null as any as CharacterAttributeManager,
+        tag: null as any as TagAttributeManager,
+    }),
     computed: {},
     watch: {
         video: {
@@ -151,6 +149,9 @@ export default Vue.extend({
             handler(video: VideoModel) {
                 video.chars.forEach(toAttribute('char'));
                 video.tags.forEach(toAttribute('tag'));
+
+                this.char = new CharacterAttributeManager(this.video);
+                this.tag = new TagAttributeManager(this.video);
             },
         },
         'char.add.dialog'() {
