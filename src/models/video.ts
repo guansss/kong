@@ -54,9 +54,11 @@ export class VideoModel {
     constructor(video: VideoRecord) {
         Object.assign(this, video);
 
-        // the rating number in database is 0-10, while Vuetify's
-        // rating component requires 0-5 for displaying five stars
-        this.rating /= 2;
+        if (!(video instanceof VideoModel)) {
+            // the rating number in database is 0-10, while Vuetify's
+            // rating component requires 0-5 for displaying five stars
+            this.rating /= 2;
+        }
     }
 
     /**
