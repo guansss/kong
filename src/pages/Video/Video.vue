@@ -1,6 +1,6 @@
 <template>
   <v-container class="pb-4">
-    <div :class="['video', videoInitialized || 'video-initial']">
+    <div class="video">
       <video
           ref="player"
           playsinline
@@ -39,8 +39,8 @@
 import { DownloadTrackingVideo, VideoModel } from '@/models';
 import { getRandomVideo, getVideo, updateVideoThumbnail } from '@/net/apis';
 import { DownloadManager } from '@/tools/DownloadManager';
+import { createPlayer } from '@/tools/player';
 import Plyr from 'plyr';
-import plyrIcons from 'plyr/dist/plyr.svg';
 import Vue from 'vue';
 import store from './store';
 import VideoInfo from './VideoInfo.vue';
@@ -50,12 +50,9 @@ export default Vue.extend({
     components: { VideoInfo },
     store,
     data: () => ({
-        // will be set to true when the first video's aspect ratio has been fetched
-        videoInitialized: false,
-
         video: null as Nullable<DownloadTrackingVideo>,
 
-        player: undefined as Plyr | undefined,
+        player: undefined as any as Plyr,
 
         videoIDOverwriting: false,
 
@@ -115,25 +112,20 @@ export default Vue.extend({
             }
         },
         setUpPlayer() {
-            this.player = new Plyr(this.$refs.player as HTMLElement, {
-                iconUrl: plyrIcons,
-                seekTime: 5,
-            });
-
-            this.player.on('loadedmetadata', () => {
-                // Plyr has a stupid 50ms delay to set the aspect ratio
-                setTimeout(() => this.videoInitialized = true, 50);
-            });
+            this.player = createPlayer(
+                this.$refs.player as HTMLElement,
+                () => this.random(),
+            );
 
             this.player.on('pause', () => {
-                this.$store.state.currentTime = this.player!.currentTime;
+                this.$store.state.currentTime = this.player.currentTime;
             });
         },
         updatePlayer(thumb: string, src?: string) {
             if (!src) {
-                this.player!.poster = thumb;
+                this.player.poster = thumb;
             } else {
-                this.player!.source = {
+                this.player.source = {
                     type: 'video',
                     sources: [{
                         src: src,
@@ -153,6 +145,7 @@ export default Vue.extend({
                 this.videoIDOverwriting = false;
 
                 this.updateVideo(video);
+                this.player.play();
             } catch (e) {
                 console.warn(e);
             }
@@ -164,7 +157,7 @@ export default Vue.extend({
 
             this.$store.state.thumbnailUpdating = true;
 
-            await updateVideoThumbnail(this.video.id, this.player!.currentTime);
+            await updateVideoThumbnail(this.video.id, this.player.currentTime);
 
             this.$store.state.thumbnailUpdating = false;
         },
@@ -203,13 +196,6 @@ export default Vue.extend({
 >
 .video {
   position: relative;
-}
-
-.video-initial {
-  ::v-deep video {
-    height: 0;
-    padding-top: 56.25%; // 16:9 aspect ratio
-  }
 }
 
 .cover {

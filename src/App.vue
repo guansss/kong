@@ -60,7 +60,7 @@ export default Vue.extend({
     name: 'App',
     components: { Confirm },
     data: () => ({
-        drawer: true,
+        drawer: false,
 
         snackbar: {
             visible: false,
@@ -129,13 +129,6 @@ a.link {
   &:hover {
     filter: brightness(150%);
   }
-}
-
-// the play button
-.plyr__control--overlaid {
-  top: unset;
-  left: 40px;
-  bottom: 32px;
 }
 
 // https://github.com/vuetifyjs/vuetify/issues/7283#issuecomment-572276385

@@ -59,10 +59,10 @@
 <script lang="ts">
 import { VideoModel } from '@/models';
 import { getVideo } from '@/net/apis';
+import { createPlayer } from '@/tools/player';
 import { delay } from '@/utils/misc';
 import { Dictionary, intersection, without } from 'lodash';
 import Plyr from 'plyr';
-import plyrIcons from 'plyr/dist/plyr.svg';
 import Vue from 'vue';
 
 export interface ControlRoomMessageEvent extends MessageEvent {
@@ -178,10 +178,7 @@ export default Vue.extend({
 
             if (video) {
                 if (!player) {
-                    player = new Plyr((this.$refs.players as HTMLElement[])[index], {
-                        iconUrl: plyrIcons,
-                        seekTime: 5,
-                    });
+                    player = createPlayer((this.$refs.players as HTMLElement[])[index]);
 
                     player.on('loadedmetadata', () => {
                         // have to wait for a while, or else setting the currentTime won't work
