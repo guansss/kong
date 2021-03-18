@@ -104,6 +104,8 @@ export default Vue.extend({
 
             document.title = video.title;
 
+            this.$store.state.currentTime = 0;
+
             this.$root.$emit('Video:loaded', this.video);
 
             if (this.video.videoLoaded) {
@@ -121,6 +123,10 @@ export default Vue.extend({
             this.player.on('loadedmetadata', () => {
                 // Plyr has a stupid 50ms delay to set the aspect ratio
                 setTimeout(() => this.videoInitialized = true, 50);
+            });
+
+            this.player.on('pause', () => {
+                this.$store.state.currentTime = this.player!.currentTime;
             });
         },
         updatePlayer(thumb: string, src?: string) {

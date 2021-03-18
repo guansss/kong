@@ -68,7 +68,10 @@ import Vue from 'vue';
 export interface ControlRoomMessageEvent extends MessageEvent {
     data: {
         type: 'add';
-        data: number;
+        data: {
+            id: number;
+            time?: number;
+        };
     } | {
         type: 'added';
     } | {
@@ -94,6 +97,9 @@ export default Vue.extend({
         edit: false,
         ready: false,
 
+        // stores the videos' playback times, which they should be sought to when loaded
+        times: {} as Record<number, number>,
+
         broadcastChannel: undefined as BroadcastChannel | undefined,
     }),
     methods: {
@@ -105,8 +111,22 @@ export default Vue.extend({
             const query = Object.assign({}, this.$route.query) as Dictionary<string>;
 
             for (const pos of POSITIONS) {
-                if (query[pos]) {
-                    const panel = this.panels.find(panel => panel.videoID === +query[pos]);
+                const value = query[pos];
+
+                if (value) {
+                    if (value.includes('@')) {
+                        const [id, time] = value.split('@');
+
+                        this.times[+id] = +time;
+
+                        // overwrite the URL, stripping the time from the video ID
+                        this.$router.replace(this.$query({ [pos]: id }));
+
+                        // postpone the process till the next invocation of this method
+                        return;
+                    }
+
+                    const panel = this.panels.find(panel => panel.videoID === +value);
 
                     if (panel) {
                         if (panel.position !== pos) {
@@ -134,7 +154,7 @@ export default Vue.extend({
                 if (index !== -1) {
                     this.updateVideo(index, +query[pos]);
                 } else {
-                    // this should not happen but just in case
+                    // this should never happen but just in case
                     console.warn('Unexpected position:', pos);
                 }
             }
@@ -163,7 +183,21 @@ export default Vue.extend({
                         seekTime: 5,
                     });
 
-                    player.on('play', () => {
+                    player.on('loadedmetadata', () => {
+                        // have to wait for a while, or else setting the currentTime won't work
+                        // because the player.duration is still 0
+                        setTimeout(() => {
+                            const videoID = panel.video?.id;
+
+                            if (videoID && this.times[videoID]) {
+                                player!.currentTime = this.times[videoID];
+
+                                delete this.times[videoID];
+                            }
+                        }, 60);
+                    });
+
+                    player.on('playing', () => {
                         if (this.ready && panel.position === PRIMARY_POSITION) {
                             // cancel the ready state and notify the app bar
                             this.ready = false;
@@ -196,7 +230,7 @@ export default Vue.extend({
             this.broadcastChannel.onmessage = (event: ControlRoomMessageEvent) => {
                 if (event.data.type === 'add') {
                     try {
-                        this.addVideo(event.data.data);
+                        this.addVideo(event.data.data.id, event.data.data.time);
 
                         const message: ControlRoomMessageEvent['data'] = {
                             type: 'added',
@@ -232,7 +266,11 @@ export default Vue.extend({
                 [this.panels[index].position]: null,
             }));
         },
-        addVideo(id: number) {
+        addVideo(id: number, time?: number) {
+            if (time) {
+                this.times[id] = time;
+            }
+
             if (this.panels.find(panel => panel.videoID === id)) {
                 return;
             }

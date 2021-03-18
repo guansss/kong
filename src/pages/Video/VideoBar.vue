@@ -114,7 +114,10 @@ export default Vue.extend({
 
                             const message: ControlRoomMessageEvent['data'] = {
                                 type: 'add',
-                                data: this.video!.id,
+                                data: {
+                                    id: this.video!.id,
+                                    time: this.$store.state.currentTime,
+                                },
                             };
                             broadcast.postMessage(message);
                         }),
@@ -125,10 +128,12 @@ export default Vue.extend({
                         // and thus a new tab should be opened
                         const { href } = this.$router.resolve({
                             name: 'control-room',
-                            query: { tr: this.video.id + '' },
+                            query: { tr: this.video.id + '@' + this.$store.state.currentTime },
                         });
 
                         window.open(href, '_blank');
+
+                        this.addedToControlRoom = true;
                     }
                 } catch (e) {
                     console.warn(e);
