@@ -13,7 +13,6 @@
         class="ml-n2"
         color="yellow"
         background-color="yellow lighten-3"
-        :readonly="!edit"
         :value="video.rating"
         @input="video.setRating($event)"
     ></v-rating>
@@ -42,7 +41,6 @@
         </v-chip>
         <v-btn
             icon
-            v-if="edit"
             @click="manager.add.dialog=true"
         >
           <v-icon>mdi-plus</v-icon>
