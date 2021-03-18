@@ -39,6 +39,14 @@ export default Vue.extend({
             return this.title !== undefined ? this.title : startCase(this.$route.name as string);
         },
     },
+    watch: {
+        title: {
+            immediate: true,
+            handler(title: string) {
+                document.title = title + ' - Kong';
+            },
+        },
+    },
 });
 </script>
 

@@ -189,6 +189,8 @@ export default Vue.extend({
             this.downloadManager.videos = this.videos;
 
             this.refreshing = false;
+
+            window.scrollTo(0, 0);
         },
         async trackDownload() {
             this.downloadManager.on('added', this.refresh);
