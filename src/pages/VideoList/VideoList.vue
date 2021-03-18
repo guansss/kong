@@ -96,17 +96,23 @@
           </div>
           <v-card-subtitle class="px-2 pt-0 pb-2">
             <div
-                v-if="video.chars.length"
+                v-if="video.chars.length + video.tags.length"
                 class="d-flex flex-wrap"
             >
               <router-link
                   v-for="char in video.chars"
                   :key="char.id"
-                  class="link mr-2 pink--text text--lighten-2"
+                  class="link mr-2 green--text text--lighten-2"
                   :to="{query:{char:char.id+''}}"
               >{{ char.name }}</router-link>
+              <router-link
+                  v-for="tag in video.tags"
+                  :key="tag.id"
+                  class="link mr-2 deep-orange--text text--lighten-2"
+                  :to="{query:{tag:tag.id+''}}"
+              >{{ tag.name }}</router-link>
             </div>
-            <!-- a whitespace to hold the place when the video has no characters -->
+            <!-- a whitespace to hold the place when the attribute lists are empty -->
             <pre v-else> </pre>
 
             <div class="mt-1 d-flex flex-wrap">
