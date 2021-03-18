@@ -128,7 +128,8 @@ export abstract class AttributeManager<T extends VideoAttributeModels = VideoAtt
 
             this.all.push(added);
 
-            this.add.dialog = false;
+            this.resetAdd();
+            await this.updateCandidates();
         } catch (e) {
             this.add.error = e + '';
         }
