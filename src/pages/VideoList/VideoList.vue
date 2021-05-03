@@ -171,18 +171,23 @@ export default Vue.extend({
 
             this.refreshing = true;
 
-            const query = this.$route.query as Dictionary<string>;
+            const query = this.$route.query as Dictionary<string | undefined>;
 
             this.page = +query.page || 1;
+
+            // sort videos by rating when there's any filter applied
+            const order = query.order || (
+                [query.search, query.creator, query.char, query.tag].some(Boolean) ? 'rating' : 'created'
+            );
 
             const result = await getVideos({
                 search: query.search || undefined,
                 creator: query.creator || undefined,
                 char: query.char || undefined,
                 tag: query.tag || undefined,
-                order: query.order || 'created',
                 offset: (this.page - 1) * PAGE_SIZE,
                 limit: PAGE_SIZE,
+                order,
             });
 
             this.total = result.total;
