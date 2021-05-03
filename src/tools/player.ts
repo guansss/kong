@@ -18,6 +18,15 @@ export function createPlayer(element: HTMLElement, fastForwardListener?: () => v
         ratio: '16:9',
     });
 
+    const onFullscreenChange = () => {
+        setTimeout(() => {
+            player.elements.container?.focus();
+        }, 300);
+    };
+
+    player.on('enterfullscreen', onFullscreenChange);
+    player.on('exitfullscreen', onFullscreenChange);
+
     if (fastForwardListener) {
         (player as any)._fastFowardButton = player.elements.buttons.fastForward;
 
