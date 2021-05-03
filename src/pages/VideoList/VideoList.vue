@@ -101,13 +101,13 @@
             >
               <router-link
                   v-for="char in video.chars"
-                  :key="char.id"
+                  :key="'c'+char.id"
                   class="link mr-2 green--text text--lighten-2"
                   :to="{query:{char:char.id+''}}"
               >{{ char.name }}</router-link>
               <router-link
                   v-for="tag in video.tags"
-                  :key="tag.id"
+                  :key="'t'+tag.id"
                   class="link mr-2 deep-orange--text text--lighten-2"
                   :to="{query:{tag:tag.id+''}}"
               >{{ tag.name }}</router-link>
