@@ -49,11 +49,16 @@
         </v-btn>
       </template>
     </v-snackbar>
+
+    <div v-if="splash" class="splash">
+      <a class="title text-h1" @click="splash=false">Kong</a>
+    </div>
   </v-app>
 </template>
 
 <script lang="ts">
 import Confirm from '@/components/Confirm.vue';
+import { destroySession, sessionExpired, startSession } from '@/tools/session';
 import Vue from 'vue';
 
 export default Vue.extend({
@@ -61,6 +66,8 @@ export default Vue.extend({
     components: { Confirm },
     data: () => ({
         drawer: false,
+
+        splash: false,
 
         snackbar: {
             visible: false,
@@ -97,6 +104,15 @@ export default Vue.extend({
             this.drawer = open !== undefined ? open : !this.drawer;
         });
         this.$root.$on('reload', this.reload);
+
+        if (sessionExpired()) {
+            this.splash = true;
+        }
+
+        startSession();
+    },
+    beforeDestroy() {
+        destroySession();
     },
 });
 </script>
@@ -104,7 +120,30 @@ export default Vue.extend({
 <style
     scoped
     lang="scss"
-></style>
+>
+.splash {
+  position: fixed;
+  z-index: 999;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  backdrop-filter: blur(30px);
+
+  .title {
+    position: absolute;
+    right: 36px;
+    bottom: 80px;
+    color: #FFF;
+    font-size: 10rem !important;
+    transition: letter-spacing .2s ease-out;
+
+    &:hover {
+      letter-spacing: 0.05em !important;
+    }
+  }
+}
+</style>
 
 <style lang="scss">
 @import "plyr";
