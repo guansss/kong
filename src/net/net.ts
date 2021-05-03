@@ -5,8 +5,13 @@ export const STATIC_SERVER = process.env.VUE_APP_STATIC_SERVER;
 
 export type APIPrimitive = string | number | boolean | undefined | null;
 
-export function file(url: string): string {
-    return new URL(url, STATIC_SERVER).toString();
+export function file(path: string): string {
+    let url = new URL(path, STATIC_SERVER).toString();
+
+    // manually escape some reserved characters in the file's path
+    url = url.replace(/#/g, '%23').replace(/\?/g, '%3F');
+
+    return url;
 }
 
 /**
