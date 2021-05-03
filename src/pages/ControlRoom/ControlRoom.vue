@@ -114,19 +114,19 @@ export default Vue.extend({
                 const value = query[pos];
 
                 if (value) {
+                    let id: number;
+
+                    // e.g. 123@100.5
                     if (value.includes('@')) {
-                        const [id, time] = value.split('@');
+                        const [_id, time] = value.split('@');
 
-                        this.times[+id] = +time;
-
-                        // overwrite the URL, stripping the time from the video ID
-                        this.$router.replace(this.$query({ [pos]: id }));
-
-                        // postpone the process till the next invocation of this method
-                        return;
+                        id = +_id;
+                        this.times[id] = +time;
+                    } else {
+                        id = +value;
                     }
 
-                    const panel = this.panels.find(panel => panel.videoID === +value);
+                    const panel = this.panels.find(panel => panel.videoID === id);
 
                     if (panel) {
                         if (panel.position !== pos) {
@@ -152,7 +152,10 @@ export default Vue.extend({
                 const index = this.panels.findIndex(panel => panel.position === pos);
 
                 if (index !== -1) {
-                    this.updateVideo(index, +query[pos]);
+                    const value = query[pos];
+                    const id = Number(value.includes('@') ? value.split('@')[0] : value);
+
+                    this.updateVideo(index, id);
                 } else {
                     // this should never happen but just in case
                     console.warn('Unexpected position:', pos);
@@ -191,7 +194,7 @@ export default Vue.extend({
 
                                 delete this.times[videoID];
                             }
-                        }, 60);
+                        }, 100);
                     });
 
                     player.on('playing', () => {
@@ -264,10 +267,6 @@ export default Vue.extend({
             }));
         },
         addVideo(id: number, time?: number) {
-            if (time) {
-                this.times[id] = time;
-            }
-
             if (this.panels.find(panel => panel.videoID === id)) {
                 return;
             }
@@ -275,8 +274,10 @@ export default Vue.extend({
             for (const panel of this.panels) {
                 // add this video to the first empty panel
                 if (!panel.videoID) {
+                    const value = time ? id + '@' + time : id;
+
                     // append the ID to query
-                    this.$router.push(this.$query({ [panel.position]: id }));
+                    this.$router.push(this.$query({ [panel.position]: value }));
 
                     return;
                 }
